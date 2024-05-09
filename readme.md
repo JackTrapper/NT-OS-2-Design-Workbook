@@ -84,3 +84,11 @@ NT OS/2 Executive
 The following specifications are contained within this design workbook.  Each specification contains an abstract of the component it describes, how that component fits into the system, the various APIs that are used to access the functionality, and enough detail to ensure the defined capability can be implemented.
 
 The goal of the specifications is to allow someone to understand the functionality provided by a particular piece of the system. It is NOT a goal to describe the actual implementation. 
+
+Each specification addresses Cruiser and POSIX compatibility, if appropriate.  The following is a list of design specifications included in this version of the workbook:
+
+1.	[**Kernel**](01%20-%20NT%20OS2%20Kernel%20Specification.md) - Describes the function of the kernel, the objects implemented, and the various interfaces provided to manipulate these objects. This specification contains implementation details, where necessary, to reveal how multiprocessing and processor dispatching take place. This specification also describes synchronization, scheduling/dispatching, and Asynchronous Procedure Calls (APCs).
+
+
+![NMAH-NMAH2005-09002](NMAH-NMAH2005-09002.jpg)
+![NMAH-NMAH2005-09003](NMAH-NMAH2005-09003.jpg)
