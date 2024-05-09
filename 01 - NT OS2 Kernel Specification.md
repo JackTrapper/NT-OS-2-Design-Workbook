@@ -6,162 +6,149 @@ Portable Systems Group
 **Author:** David N. Cutler,  
         Bryan M. Willman
 
-*Original Draft 1.0, March 8, 1989*  
-*Revision 1.1, March 16, 1989*  
-*Revision 1.2, March 29, 1989*  
-*Revision 1.3, April 18, 1989*  
-*Revision 1.4, May 4, 1989*  
-*Revision 1.5, May 8, 1989*  
-*Revision 1.6, August 14, 1989*  
-*Revision 1.7, November 15, 1989*  
-*Revision 1.8, November 16, 1989*  
-*Revision 1.9, November 17, 1989*  
-*Revision 1.10, January 6, 1990*  
-*Revision 1.11, June 6, 1990*  
-*Revision 1.12, September 19, 1990*  
-*Revision 1.13, March 11, 1991*  
-*Revision 1.14, May 2, 1991*  
-*Revision 1.15, May 28, 1991*  
-*Revision 1.16, June 18, 1991*  
-*Revision 1.17, August 7, 1991*  
-*Revision 1.18, August 8, 1991*  
  
-1. Overview  
-    1.1 Kernel Execution Environment  
-    1.2 Kernel Use of Hardware Priority Levels  
-    1.3 Primary Kernel Data Structures  
-    1.4 Multiprocessor Synchronization   
-         - 1.4.1 Executive Multiprocessor Synchronization  
-         - 1.4.1.1 Acquire Executive Spin Lock  
-         - 1.4.1.2 Release Executive Spin Lock  
-    1.5 Dispatching  
-        1.5.1 Dispatcher Database  
-        1.5.2 Idle Thread  
-2. Kernel Objects  
-    2.1 Dispatcher Objects  
-        2.1.1 Event Object  
-        2.1.1.1 Initialize Event  
-        2.1.1.2 Pulse Event  
-        2.1.1.3 Read State Event  
-        2.1.1.4 Reset Event  
-        2.1.1.5 Set Event  
-        2.1.2 Mutual Exclusion Objects  
-        2.1.2.1 Mutant Object  
-        2.1.2.1.1 Initialize Mutant  
-        2.1.2.1.2 Read State Mutant  
-        2.1.2.1.3 Release Mutant  
-        2.1.2.2 Mutex Object  
-        2.1.2.2.1 Initialize Mutex  
-        2.1.2.2.2 Read State Mutex  
-        2.1.2.2.3 Release Mutex  
-        2.1.2.2.4 Mutex Contention Data  
-    2.1.3 Semaphore Object  
-        2.1.3.1 Initialize Semaphore  
-        2.1.3.2 Read State Semaphore  
-        2.1.3.3 Release Semaphore  
-    2.1.4 Thread Object  
-        2.1.4.1 Initialize Thread  
-        2.1.4.2 Alert Thread  
-        2.1.4.3 Alert and Resume Thread  
-        2.1.4.4 Confine Thread  
-        2.1.4.5 Delay Execution  
-        2.1.4.6 Disable Queuing of APCs  
-        2.1.4.7 Enable Queuing of APCs  
-        2.1.4.8 Force Resumption of Thread  
-        2.1.4.9 Freeze Thread  
-        2.1.4.10 Query Data Alignment Mode  
-        2.1.4.11 Query Base Priority  
-        2.1.4.12 Read State Thread  
-        2.1.4.13 Ready Thread  
-        2.1.4.14 Resume Thread  
-        2.1.4.15 Rundown Thread  
-        2.1.4.16 Set Affinity Thread  
-        2.1.4.17 Set Data Alignment Mode  
-        2.1.4.18 Set Base Priority  
-        2.1.4.19 Set Priority Thread  
-        2.1.4.20 Suspend Thread  
-        2.1.4.21 Terminate Thread  
-        2.1.4.22 Test Alert Thread  
-        2.1.4.23 Unfreeze Thread  
-        2.1.4.24 Thread Performance Data  
-    2.1.5 Timer Object  
-        2.1.5.1 Initialize Timer  
-        2.1.5.2 Cancel Timer  
-        2.1.5.3 Read State Timer  
-        2.1.5.4 Set Timer  
-    2.2 Control Objects  
-        2.2.1 Asynchronous Procedure Call (APC) Object  
-            2.2.1.1 Initialize APC  
-            2.2.1.2 Flush Queue APC  
-            2.2.1.3 Insert Queue APC  
-            2.2.1.4 Remove Queue APC  
-        2.2.2 Deferred Procedure Call (DPC) Object  
-            2.2.2.1 Initialize DPC  
-            2.2.2.2 Insert Queue DPC  
-            2.2.2.3 Remove Queue DPC  
-        2.2.3 Device Queue Object  
-            2.2.3.1 Initialize Device Queue  
-            2.2.3.2 Insert Device Queue  
-            2.2.3.3 Insert By Key Device Queue  
-            2.2.3.4 Remove Device Queue  
-            2.2.3.5 Remove Entry Device Queue  
-        2.2.4 Interrupt Object  
-            2.2.4.1 Initialize Interrupt  
-            2.2.4.2 Connect Interrupt  
-            2.2.4.3 Disconnect Interrupt  
-            2.2.4.4 Synchronize Execution  
-        2.2.5 Power Notify Object  
-            2.2.5.1 Initialize Power Notify  
-            2.2.5.2 Insert Power Notify  
-            2.2.5.3 Remove Power Notify  
-            2.2.6 Power Status Object  
-            2.2.6.1 Initialize Power Status  
-            2.2.6.2 Insert Power Status  
-            2.2.6.3 Remove Power Status  
-        2.2.7 Process Object  
-            2.2.7.1 Initialize Process  
-            2.2.7.2 Attach Process  
-            2.2.7.3 Detach Process  
-            2.2.7.4 Exclude Process  
-            2.2.7.5 Include Process  
-            2.2.7.6 Set Priority Process  
-            2.2.7.7 Process Accounting Data  
-        2.2.8 Profile Object  
-            2.2.8.1 Initialize Profile  
-            2.2.8.2 Start Profile  
-            2.2.8.3 Stop Profile  
-            2.2.8.4 Set System Profile Interval  
-            2.2.8.5 Query System Profile Interval  
-3. Wait Operations  
-    3.1 Wait For Multiple Objects  
-    3.2 Wait For Single Object  
-4. Miscellaneous Operations  
-    4.1 Bug Check  
-    4.2 Context Frame Manipulation  
-        4.2.1 Move Machine State To Context Frame  
-        4.2.2 Move Machine State From Context Frame  
-    4.3 Fill Entry Translation Buffer  
-    4.4 Flush Data Cache  
-    4.5 Flush Entire Translation Buffer  
-    4.6 Flush Instruction Cache  
-    4.7 Flush I/O Buffers  
-    4.8 Flush Single Translation Buffer Entry  
-    4.9 Freeze Execution  
-    4.10 Get Current APC Environment  
-    4.11 Get Current IRQL  
-    4.12 Get Previous Mode  
-    4.13 Lower IRQL  
-    4.14 Query System Time  
-    4.15 Raise IRQL  
-    4.16 Run Down Thread  
-    4.17 Set System Time  
-    4.18 Stall Execution  
-    4.19 Unfreeze Execution  
-5. Intel x86 Specific Functions.  
-    5.1 Load an Ldt for a process.  
-    5.2 Set and Entry in a Process's Ldt.  
-    5.3 Get an Entry from a Thread's Gdt.  
- 
+1. [Overview](#1-overview)  
+   - 1.1 [Kernel Execution Environment](#11-kernel-execution-environment)  
+   - 1.2 [Kernel Use of Hardware Priority Levels](#12-kernel-use-of-hardware-priority-levels)  
+   - 1.3 [Primary Kernel Data Structures](#13-primary-kernel-data-structures)  
+   - 1.4 [Multiprocessor Synchronization](#14-multiprocessor-synchronization)  
+      - 1.4.1 [Executive Multiprocessor Synchronization](#141-executive-multiprocessor-synchronization)  
+         - 1.4.1.1 [Acquire Executive Spin Lock](#1411-acquire-executive-spin-lock)  
+         - 1.4.1.2 [Release Executive Spin Lock](#1412-release-executive-spin-lock)  
+   - 1.5 [Dispatching](#15-dispatching)  
+        1.5.1 [Dispatcher Database](#151-dispatcher-database)  
+        1.5.2 [Idle Thread](#152-idle-thread)  
+
+2. [Kernel Objects](#2-kernel-objects)  
+   - 2.1 [Dispatcher Objects](#21-dispatcher-objects)  
+      - 2.1.1 [Event Object](#211-event-object)  
+      - 2.1.1.1 [Initialize Event](#2111-initialize-event)  
+      - 2.1.1.2 [Pulse Event](#2112-pulse-event)  
+      - 2.1.1.3 [Read State Event](#2113-read-state-event)  
+      - 2.1.1.4 [Reset Event](#2114-reset-event)  
+      - 2.1.1.5 [Set Event](#2115-set-event)  
+      - 2.1.2 [Mutual Exclusion Objects](#212-mutual-exclusion-objects)  
+      - 2.1.2.1 [Mutant Object](#2121-mutant-object)  
+      - 2.1.2.1.1 [Initialize Mutant](#21211-initialize-mutant)  
+      - 2.1.2.1.2 [Read State Mutant](#21212-read-state-mutant)  
+      - 2.1.2.1.3 [Release Mutant](#21213-release-mutant)  
+      - 2.1.2.2 [Mutex Object](#2122-mutex-object)  
+      - 2.1.2.2.1 [Initialize Mutex](#21221-initialize-mutex)  
+      - 2.1.2.2.2 [Read State Mutex](#21222-read-state-mutex)  
+      - 2.1.2.2.3 [Release Mutex](#21223-release-mutex)  
+      - 2.1.2.2.4 [Mutex Contention Data](#21224-mutex-contention-data)  
+   - 2.1.3 [Semaphore Object](#213-semaphore-object)  
+		- 2.1.3.1 [Initialize Semaphore](#2131-initialize-semaphore)
+		- 2.1.3.2 [Read State Semaphore](#2132-read-state-semaphore)
+		- 2.1.3.3 [Release Semaphore](#2133-release-semaphore)
+      - 2.1.3.2 [Read State Semaphore](#2132-read-state-semaphore)  
+      - 2.1.3.3 [Release Semaphore](#2133-release-semaphore)  
+   - 2.1.4 [Thread Object](#214-thread-object)  
+      - 2.1.4.1 [Initialize Thread](#2141-initialize-thread)  
+      - 2.1.4.2 [Alert Thread](#2142-alert-thread)  
+      - 2.1.4.3 [Alert and Resume Thread](#2143-alert-and-resume-thread)  
+      - 2.1.4.4 [Confine Thread](#2144-confine-thread)  
+      - 2.1.4.5 [Delay Execution](#2145-delay-execution)  
+      - 2.1.4.6 [Disable Queuing of APCs](#2146-disable-queuing-of-apcs)  
+      - 2.1.4.7 [Enable Queuing of APCs](#2147-enable-queuing-of-apcs)  
+      - 2.1.4.8 [Force Resumption of Thread](#2148-force-resumption-of-thread)  
+      - 2.1.4.9 [Freeze Thread](#2149-freeze-thread)  
+      - 2.1.4.10 [Query Data Alignment Mode](#21410-query-data-alignment-mode)  
+      - 2.1.4.11 [Query Base Priority](#21411-query-base-priority)
+      - 2.1.4.12 [Read State Thread](#21412-read-state-thread)
+      - 2.1.4.13 [Ready Thread](#21413-ready-thread)
+      - 2.1.4.14 [Resume Thread](#21414-resume-thread)
+      - 2.1.4.15 [Rundown Thread](#21415-rundown-thread)
+      - 2.1.4.16 [Set Affinity Thread](#21416-set-affinity-thread)
+      - 2.1.4.17 [Set Data Alignment Mode](#21417-set-data-alignment-mode)
+      - 2.1.4.18 [Set Base Priority](#21418-set-base-priority)
+      - 2.1.4.19 [Set Priority Thread](#21419-set-priority-thread)
+      - 2.1.4.20 [Suspend Thread](#21420-suspend-thread)
+      - 2.1.4.21 [Terminate Thread](#21421-terminate-thread)
+      - 2.1.4.22 [Test Alert Thread](#21422-test-alert-thread)
+      - 2.1.4.23 [Unfreeze Thread](#21423-unfreeze-thread)
+      - 2.1.4.24 [Thread Performance Data](#21424-thread-performance-data)
+   - 2.1.5 [Timer Object](#215-timer-object)
+      - 2.1.5.1 [Initialize Timer](#2151-initialize-timer)
+      - 2.1.5.2 [Cancel Timer](#2152-cancel-timer)
+      - 2.1.5.3 [Read State Timer](#2153-read-state-timer)
+      - 2.1.5.4 [Set Timer](#2154-set-timer)
+   - 2.2 [Control Objects](#22-control-objects)
+      - 2.2.1 [Asynchronous Procedure Call (APC) Object](#221-asynchronous-procedure-call-apc-object)
+         - 2.2.1.1 [Initialize APC](#2211-initialize-apc)
+         - 2.2.1.2 [Flush Queue APC](#2212-flush-queue-apc)
+         - 2.2.1.3 [Insert Queue APC](#2213-insert-queue-apc)
+         - 2.2.1.4 [Remove Queue APC](#2214-remove-queue-apc)
+      - 2.2.2 [Deferred Procedure Call (DPC) Object](#222-deferred-procedure-call-dpc-object)
+         - 2.2.2.1 [Initialize DPC](#2221-initialize-dpc)
+         - 2.2.2.2 [Insert Queue DPC](#2222-insert-queue-dpc)
+         - 2.2.2.3 [Remove Queue DPC](#2223-remove-queue-dpc)
+      - 2.2.3 [Device Queue Object](#223-device-queue-object)
+         - 2.2.3.1 [Initialize Device Queue](#2231-initialize-device-queue)
+         - 2.2.3.2 [Insert Device Queue](#2232-insert-device-queue)
+         - 2.2.3.3 [Insert By Key Device Queue](#2233-insert-by-key-device-queue)
+         - 2.2.3.4 [Remove Device Queue](#2234-remove-device-queue)  
+         - 2.2.3.5 [Remove Entry Device Queue](#2235-remove-entry-device-queue)  
+      - 2.2.4 [Interrupt Object](#224-interrupt-object)  
+         - 2.2.4.1 [Initialize Interrupt](#2241-initialize-interrupt)  
+         - 2.2.4.2 [Connect Interrupt](#2242-connect-interrupt)  
+         - 2.2.4.3 [Disconnect Interrupt](#2243-disconnect-interrupt)  
+         - 2.2.4.4 [Synchronize Execution](#2244-synchronize-execution)  
+      - 2.2.5 [Power Notify Object](#225-power-notify-object)  
+         - 2.2.5.1 [Initialize Power Notify](#2251-initialize-power-notify)  
+         - 2.2.5.2 [Insert Power Notify](#2252-insert-power-notify)  
+         - 2.2.5.3 [Remove Power Notify](#2253-remove-power-notify)  
+         - 2.2.6 [Power Status Object](#226-power-status-object)  
+         - 2.2.6.1 [Initialize Power Status](#2261-initialize-power-status)  
+         - 2.2.6.2 [Insert Power Status](#2262-insert-power-status)  
+         - 2.2.6.3 [Remove Power Status](#2263-remove-power-status)  
+      - 2.2.7 [Process Object](#227-process-object)  
+         - 2.2.7.1 [Initialize Process](#2271-initialize-process)  
+         - 2.2.7.2 [Attach Process](#2272-attach-process)  
+         - 2.2.7.3 [Detach Process](#2273-detach-process)  
+         - 2.2.7.4 [Exclude Process](#2274-exclude-process)  
+         - 2.2.7.5 [Include Process](#2275-include-process)  
+         - 2.2.7.6 [Set Priority Process](#2276-set-priority-process)  
+         - 2.2.7.7 [Process Accounting Data](#2277-process-accounting-data)  
+      - 2.2.8 [Profile Object](#228-profile-object)  
+         - 2.2.8.1 [Initialize Profile](#2281-initialize-profile)  
+         - 2.2.8.2 [Start Profile](#2282-start-profile)  
+         - 2.2.8.3 [Stop Profile](#2283-stop-profile)  
+         - 2.2.8.4 [Set System Profile Interval](#2284-set-system-profile-interval)  
+         - 2.2.8.5 [Query System Profile Interval](#2285-query-system-profile-interval)  
+
+3. [Wait Operations](#3-wait-operations)  
+   - 3.1 [Wait For Multiple Objects](#31-wait-for-multiple-objects)  
+   - 3.2 [Wait For Single Object](#32-wait-for-single-object)  
+
+4. [Miscellaneous Operations](#4-miscellaneous-operations)  
+   - 4.1 [Bug Check](#41-bug-check)  
+   - 4.2 [Context Frame Manipulation](#42-context-frame-manipulation)  
+      - 4.2.1 [Move Machine State To Context Frame](#421-move-machine-state-to-context-frame)  
+      - 4.2.2 [Move Machine State From Context Frame](#422-move-machine-state-from-context-frame)  
+   - 4.3 [Fill Entry Translation Buffer](#43-fill-entry-translation-buffer)  
+   - 4.4 [Flush Data Cache](#44-flush-data-cache)  
+   - 4.5 [Flush Entire Translation Buffer](#45-flush-entire-translation-buffer)  
+   - 4.6 [Flush Instruction Cache](#46-flush-instruction-cache)  
+   - 4.7 [Flush I/O Buffers](#47-flush-io-buffers)  
+   - 4.8 [Flush Single Translation Buffer Entry](#48-flush-single-translation-buffer-entry)  
+   - 4.9 [Freeze Execution](#49-freeze-execution)  
+   - 4.10 [Get Current APC Environment](#410-get-current-apc-environment)  
+   - 4.11 [Get Current IRQL](#411-get-current-irql)  
+   - 4.12 [Get Previous Mode](#412-get-previous-mode)  
+   - 4.13 [Lower IRQL](#413-lower-irql)  
+   - 4.14 [Query System Time](#414-query-system-time)  
+   - 4.15 [Raise IRQL](#415-raise-irql)  
+   - 4.16 [Run Down Thread](#416-run-down-thread)  
+   - 4.17 [Set System Time](#417-set-system-time)  
+   - 4.18 [Stall Execution](#418-stall-execution)  
+   - 4.19 [Unfreeze Execution](#419-unfreeze-execution)  
+
+5. [Intel x86 Specific Functions](#5-intel-x86-specific-functions)
+   - 5.1 [Load an Ldt for a process](#51-load-an-ldt-for-a-process)
+   - 5.2 [Set and Entry in a Process's Ldt](#52-set-and-entry-in-a-processs-ldt)
+   - 5.3 [Get an Entry from a Thread's Gdt](#53-get-an-entry-from-a-threads-gdt)
+
 1\. Overview
 ==============
 
