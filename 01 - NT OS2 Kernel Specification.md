@@ -3,8 +3,7 @@ NT OS/2 Kernel Specification
 
 Portable Systems Group
 
-**Author:** David N. Cutler,  
-        Bryan M. Willman
+**Author:** David N. Cutler, Bryan M. Willman
 
  
 1. [Overview](#1-overview)  
@@ -174,12 +173,12 @@ It is estimated that the kernel will be less than 48k bytes of resident nonpagea
 1.1 Kernel Execution Environment
 --------------------------------
 
-The kernel executes in the most privileged processor mode, usually at an Interrupt Request Level (IRQL) of DISPATCH_LEVEL. The most privileged processor mode is termed kernel mode.
+The kernel executes in the most privileged processor mode, usually at an Interrupt Request Level (IRQL) of `DISPATCH_LEVEL`. The most privileged processor mode is termed kernel mode.
 
 > On the N10 and the x86 architectures the most privileged processor mode is called supervisor mode. However, in other architectures (e.g., MIPS), the most privileged processor mode is not called supervisor mode. Furthermore, still other architectures include a supervisor mode, but it is not the most privileged mode. Therefore, since it is intended that NT OS/2 be portable and capable of running across several architectures, the most privileged processor mode will be referred to as kernel mode.
 
 The kernel can execute simultaneously on all processors in a multiprocessor configuration and synchronize access to critical regions as appropriate.
-Software within the kernel is not preemptible and, therefore, cannot be context switched, whereas all software outside the kernel is almost always preemptible and context switchable. In general, executive software outside the kernel is not allowed to raise the IRQL above APC_LEVEL. However, device drivers and executive spin lock synchronization are exceptions to this rule.
+Software within the kernel is not preemptible and, therefore, cannot be context switched, whereas all software outside the kernel is almost always preemptible and context switchable. In general, executive software outside the kernel is not allowed to raise the IRQL above `APC_LEVEL`. However, device drivers and executive spin lock synchronization are exceptions to this rule.
 
 The kernel is not pageable and cannot take page faults.
 
@@ -227,7 +226,7 @@ Device interrupt levels are generally placed between the levels `WAKE_LEVEL` and
 
 The levels `CLOCK2_LEVEL`, `IPI_LEVEL`, `POWER_LEVEL`, and `HIGH_LEVEL` are the highest priority levels and are the most time critical.
 
-> The exact specification of interrupt levels is dependent on the host system architecture. The above discussion only defines the importance of the various levels, and does not attempt to assign a numeric value of each level.
+> *The exact specification of interrupt levels is dependent on the host system architecture. The above discussion only defines the importance of the various levels, and does not attempt to assign a numeric value of each level.*
 
 1.3 Primary Kernel Data Structures
 ----------------------------------
@@ -279,7 +278,7 @@ Kernel dispatcher objects allow the processor to be redispatched (context switch
 Executive spin locks could cause serious maintenance problems if not used judiciously. In particular, no deadlock protection is performed and dispatching is disabled while the executive owns a spin lock. Therefore, certain rules must be followed by executive software when using spin locks:
 
 1. The code within a critical region that is guarded by an executive spin lock must not be pageable and must not make any references to pageable data.
-2. An executive spin lock can only be acquired from IRQL's 0, `APC_LEVEL`, and `DISPATCH_LEVEL`.
+2. An executive spin lock can only be acquired from IRQL's `0`, `APC_LEVEL`, and `DISPATCH_LEVEL`.
 3. The code within a critical region that is guarded by an executive spin lock cannot call any external procedures, nor can it generate any software conditions or hardware exceptions.
 
 Programming interfaces that support executive spin locks include:
@@ -362,7 +361,7 @@ The **ready summary** is used to quickly locate a thread to execute when the cur
 
 The **active summary** is used to quickly determine if preemption should occur when a thread transitions to a Ready state. 
 
-> Since this determination is simple in a uniprocessor system, the active summary and active matrix are only kept up to date and used on configurations with multiple processors.
+> *Since this determination is simple in a uniprocessor system, the active summary and active matrix are only kept up to date and used on configurations with multiple processors.*
 
 ### 1.5.2 Idle Thread
 
@@ -518,7 +517,7 @@ The previous state of the event object is returned as the function value and the
 
 #### 2.1.1.5 Set Event
 
-An event object can be set to a Signaled state with the KeSetEvent function:
+An event object can be set to a Signaled state with the **KeSetEvent** function:
 
 ```
 LONG
@@ -741,7 +740,7 @@ Two counters are maintained for each mutex object to determine the activity leve
 
 ### 2.1.3 Semaphore Object
 
-A semaphore object is used to control access to a resource, but not necessarily in a mutually exclusive fashion. A semaphore object acts as a gate through which a variable number of threads may pass concurrently, up to a specified limit. The gate is open (Signaled state) as long as there are resources available. When the number of resources specified by the limit are concurrently in use, the gate is closed (Not-Signaled state).
+A *semaphore object* is used to control access to a resource, but not necessarily in a mutually exclusive fashion. A semaphore object acts as a gate through which a variable number of threads may pass concurrently, up to a specified limit. The gate is open (Signaled state) as long as there are resources available. When the number of resources specified by the limit are concurrently in use, the gate is closed (Not-Signaled state).
 
 The gating mechanism of a semaphore object is controlled by a count. When the count is greater than zero, the semaphore object is in the Signaled state, and one or more threads may pass through the gate by specifying the semaphore in a kernel Wait function. When the count is zero, the semaphore object is in the Not-Signaled state, the gate is closed, and any attempt to pass through the gate will cause the subject thread to Wait until the semaphore count is greater than zero.
 
@@ -844,7 +843,7 @@ The context of a thread typically consists of the following:
 - A processor status
 - A floating point status
 
-> The exact context of a thread is host architecture dependent.
+> *The exact context of a thread is host architecture dependent.*
 
 Each thread has a set of processors on which it can execute. This is referred to as the processor affinity. When a thread is initialized it is given the processor affinity of its parent process. Thereafter, the affinity of the thread can be set to any proper subset of the parent process's affinity.
 
@@ -869,13 +868,13 @@ A thread is in a *Waiting* state when it is waiting for one or more dispatcher o
 
 A thread in the *Terminated* state has completed its execution and the corresponding thread object will be deleted by the executive at the appropriate time.
 
-> Note that is possible to reuse a thread object that has a state of Terminated by simply reinitializing the thread object which will cause it to enter the Initialized state.
+> *Note that is possible to reuse a thread object that has a state of Terminated by simply reinitializing the thread object which will cause it to enter the Initialized state.*
 
 A thread's parent process is either in the balance set (Included) or not in the balance set (Excluded). The balance set is that set of processes and threads that are currently eligible for being considered for execution. Processes and threads that are not in the balance set are not considered for execution until they reenter the balance set.
 
 The balance set is managed by the balance set manager. In a single user system there will be no balance set manager. Server systems, however, present the problem of having to manage more processes than there is space for in main memory without incurring excessive paging. Therefore, the balance set manager is responsible for determining when excessive paging is occurring and then selecting the appropriate processes to remove from the balance set.
 
-> There may not be a balance set manager in the first release of NT OS/2. We may rely instead on working set trimming to obtain necessary memory when excessive paging levels are observed.
+> *There may not be a balance set manager in the first release of NT OS/2. We may rely instead on working set trimming to obtain necessary memory when excessive paging levels are observed.*
 
 A thread is dispatched for execution according to its software priority level. Higher priority threads are given preference and preempt the execution of lower priority threads.
 
@@ -1174,9 +1173,9 @@ KeQueryAutoAlignmentThread (
 
 The data alignment handling mode for the current thread is returned as the function value. A value of TRUE is returned if user mode data alignment exceptions are automatically handled by the kernel and are not raised as exceptions. Otherwise, user mode data alignment exceptions are not handled by the kernel and may, or may not, be raised as exceptions depending on host hardware capabilities. Automatic handling of user mode data alignment exceptions means that the kernel emulates misaligned data references and completes the offending instructions as if no misalignment exception had occurred. Misaligned references in kernel mode are never automatically handled and are always raised as exceptions.
 
-IMPLEMENTATION NOTES:
-
-Certain processors (e.g., the i386) always handle misaligned data in hardware. On these processors, enabling or disabling the automatic handling of data alignment exceptions has no effect. On other processors (e.g., i486, MIPS r3000, r4000SP, and r4000MP) the handling of misaligned data is handled according to the mode established for the respective thread.
+> **IMPLEMENTATION NOTES:**
+> 
+> Certain processors (e.g., the i386) always handle misaligned data in hardware. On these processors, enabling or disabling the automatic handling of data alignment exceptions has no effect. On other processors (e.g., i486, MIPS r3000, r4000SP, and r4000MP) the handling of misaligned data is handled according to the mode established for the respective thread.
 
 #### 2.1.4.11 Query Base Priority
 
@@ -1304,9 +1303,9 @@ The *Enable* parameter specifies the handling mode for data alignment exceptions
 
 The previous data alignment handling mode is returned as the function value.
 
-IMPLEMENTATION NOTES:
-
-Certain processors (e.g., the i386) always handle misaligned data in hardware. On these processors, enabling or disabling the automatic handling of data alignment exceptions has no effect. On other processors (e.g., i486, MIPS r3000, r4000SP, and r4000MP) the handling of misaligned data is handled according to the mode established for the respective thread.
+> **IMPLEMENTATION NOTES:**
+> 
+> Certain processors (e.g., the i386) always handle misaligned data in hardware. On these processors, enabling or disabling the automatic handling of data alignment exceptions has no effect. On other processors (e.g., i486, MIPS r3000, r4000SP, and r4000MP) the handling of misaligned data is handled according to the mode established for the respective thread.
 
 #### 2.1.4.18 Set Base Priority
 
@@ -1468,10 +1467,10 @@ Timer objects can be used to synchronize the execution of specific actions with 
 
 Programming interfaces that support the thread object include:
 
-- **KeInitializeTimer** - Initialize a timer object
-- **KeCancelTimer** - Cancel timer object expiration
-- **KeReadStateTimer** - Read state of timer object
-- **KeSetTimer** - Set timer object expiration time
+- [**KeInitializeTimer**](#2151-initialize-timer) - Initialize a timer object
+- [**KeCancelTimer**](#2152-cancel-timer) - Cancel timer object expiration
+- [**KeReadStateTimer**](#2153-read-state-timer) - Read state of timer object
+- [**KeSetTimer**](#2154-set-timer) - Set timer object expiration time
 
 #### 2.1.5.1 Initialize Timer
 
@@ -1485,8 +1484,6 @@ KeInitializeTimer (
 ```
 
 __Parameters:__
-
-> `================== pinkbits ===================`
 
 - *Timer* - A pointer to a dispatcher object of type timer.
 
@@ -1505,12 +1502,13 @@ KeCancelTimer (
 
 __Parameters:__
 
-Timer - A pointer to a dispatcher object of type timer.
+- *Timer* - A pointer to a dispatcher object of type timer.
+
 If the timer object is currently in the system timer queue, then it is removed from the queue and a value of TRUE is returned as the function value (a boolean state variable records whether the timer object is in the system timer queue). Otherwise, no operation is performed and a value of FALSE is returned as the function value.
 
 #### 2.1.5.3 Read State Timer
 
-The current state of a timer object can be read with the KeReadStateTimer function:
+The current state of a timer object can be read with the **KeReadStateTimer** function:
 
 ```
 BOOLEAN
@@ -1521,12 +1519,13 @@ KeReadStateTimer (
 
 __Parameters:__
 
-Timer - A pointer to a dispatcher object of type timer.
+- *Timer* - A pointer to a dispatcher object of type timer.
+
 The current state of the timer object is returned as the function value. If the current state of the timer object is Signaled, then a value of TRUE is returned. Otherwise, a value of FALSE is returned.
 
 #### 2.1.5.4 Set Timer
 
-A timer object can be set to expire at a specified time with the KeSetTimer function:
+A timer object can be set to expire at a specified time with the **KeSetTimer** function:
 
 ```
 BOOLEAN
@@ -1539,21 +1538,22 @@ KeSetTimer (
 
 __Parameters:__
 
-Timer - A pointer to a dispatcher object of type timer.
-DueTime - The absolute or relative time at which the timer is to expire.
-Dpc - An optional pointer to a control object of type deferred procedure call.
+- *Timer* - A pointer to a dispatcher object of type timer.
+- *DueTime* - The absolute or relative time at which the timer is to expire.
+- *Dpc* - An optional pointer to a control object of type deferred procedure call.
 
 Setting a timer object causes the absolute expiration time to be computed, the state of the timer to be set to Not-Signaled, and the timer object to be inserted in the system timer queue. If the timer object is already in the timer queue, then it is implicitly canceled before it is set to the new expiration time (a boolean state variable records whether the timer object is in the system timer queue).
 
-The expiration time of the timer object is expressed as either the absolute time that the timer is to expire, or a time that is relative to the current system time. If the value of the DueTime parameter is negative, then the expiration time is relative. Otherwise, the expiration time is absolute.
+The expiration time of the timer object is expressed as either the absolute time that the timer is to expire, or a time that is relative to the current system time. If the value of the *DueTime* parameter is negative, then the expiration time is relative. Otherwise, the expiration time is absolute.
 
 The expiration time is expressed in system time units which are 100ns intervals.
 
-If the Dpc parameter is specified, then a DPC object is associated with the timer object.
+If the *Dpc* parameter is specified, then a DPC object is associated with the timer object.
 
 If the timer object was previously in the system timer queue, then a value of TRUE is returned as the function value. Otherwise, a value of FALSE is returned.
 
 When the timer object expires, it is removed from the system timer queue and its state is set to Signaled. If a DPC object was associated with the timer object when it was set, then it is inserted in the system DPC queue and will execute as soon as conditions permit (a boolean state variable records whether the DPC object is in the system DPC queue).
+
 
 ## 2.2 Control Objects
 
@@ -1561,45 +1561,45 @@ This section describes the various types of control objects and the interfaces t
 
 ### 2.2.1 Asynchronous Procedure Call (APC) Object
 
-An Asynchronous Procedure Call (APC) object provides the capability to break into the execution of a specified thread and cause a procedure to be called in a specified processor mode. Software running in kernel mode can only be interrupted to execute asynchronous procedures in kernel mode, whereas software running in user mode can be interrupted to execute asynchronous procedures in both user and kernel mode.
+An *Asynchronous Procedure Call* (APC) object provides the capability to break into the execution of a specified thread and cause a procedure to be called in a specified processor mode. Software running in kernel mode can only be interrupted to execute asynchronous procedures in kernel mode, whereas software running in user mode can be interrupted to execute asynchronous procedures in both user and kernel mode.
 
-An asynchronous procedure call occurs in the context of a specified thread and is triggered by a software interrupt at APC_LEVEL. 
+An asynchronous procedure call occurs in the context of a specified thread and is triggered by a software interrupt at `APC_LEVEL`. 
 
 There are two types of APC objects:
 
-	1.	Special
-	2.	Normal	
+1. *Special*
+2. *Normal*
 
-Special APC objects cause the execution of a thread to be interrupted to execute a procedure in kernel mode at IRQL APC_LEVEL. Special APC objects can break into the execution of a thread at any time the thread is executing at IRQL 0.
+Special APC objects cause the execution of a thread to be interrupted to execute a procedure in kernel mode at IRQL `APC_LEVEL`. Special APC objects can break into the execution of a thread at any time the thread is executing at IRQL 0.
 
-Ordinarily, special APC procedures perform a minimal amount of work and return immediately to the APC dispatcher without calling any external procedures. However, if code running as part of a special APC procedure acquires a mutex that is also acquired by code outside the special APC procedure, then the code outside the special APC procedure must explicitly raise IRQL to APC_LEVEL when it wants to acquire the mutex.
+Ordinarily, special APC procedures perform a minimal amount of work and return immediately to the APC dispatcher without calling any external procedures. However, if code running as part of a special APC procedure acquires a mutex that is also acquired by code outside the special APC procedure, then the code outside the special APC procedure must explicitly raise IRQL to `APC_LEVEL` when it wants to acquire the mutex.
 
 This convention is required to prevent the special APC procedure from acquiring the mutex at an inappropriate time, which can happen if the thread that receives the special APC already owns the mutex when the special APC procedure is executed.
 
 During the execution of a special APC procedure, page faults can be taken and all the kernel services are available. However, system services are not available, and care must be taken to ensure that any executive services that are used can be safely called.
 
-Normal APC objects cause the execution of a thread to be interrupted to execute a procedure in kernel mode at IRQL APC_LEVEL and, in addition, a procedure in either kernel or user mode at IRQL 0. The first procedure (executed in kernel mode) is called just prior to calling the second procedure in the specified mode, and must adhere to the conventions for special APC procedures. 
+Normal APC objects cause the execution of a thread to be interrupted to execute a procedure in kernel mode at IRQL `APC_LEVEL` and, in addition, a procedure in either kernel or user mode at IRQL 0. The first procedure (executed in kernel mode) is called just prior to calling the second procedure in the specified mode, and must adhere to the conventions for special APC procedures. 
 
 Normal APC objects can only break into the execution of a thread when the thread is executing at IRQL 0 and a normal APC for the specified mode is not already active.
 
-While a normal APC is active for kernel mode, further normal APCs are software disabled until the active APC completes. The delivery of normal APCs for kernel mode is also implicitly disabled while a thread owns one or more mutexes (i.e, the thread does not have to explicitly raise IRQL to APC_LEVEL in order to synchronize with normal APC procedures).
+While a normal APC is active for kernel mode, further normal APCs are software disabled until the active APC completes. The delivery of normal APCs for kernel mode is also implicitly disabled while a thread owns one or more mutexes (i.e, the thread does not have to explicitly raise IRQL to `APC_LEVEL` in order to synchronize with normal APC procedures).
 
-Normal user mode APCs are only delivered when the subject thread is alertable. This occurs when a thread waits user-mode alertable and when the thread calls KeTestAlertThread. 
+Normal user mode APCs are only delivered when the subject thread is alertable. This occurs when a thread waits user-mode alertable and when the thread calls *KeTestAlertThread*. 
 
-While a normal APC is active for user mode, further normal APCs for user mode are software disabled by the alert mechanism. Upon completion of a normal APC in user mode, KeTestAlertThread is automatically called, which enables the delivery of another user mode APC. Thus, once a thread is user-mode alertable and an APC is delivered, further APCs are delivered one after the other until there are no APCs remaining in the user-mode APC queue.
+While a normal APC is active for user mode, further normal APCs for user mode are software disabled by the alert mechanism. Upon completion of a normal APC in user mode, *KeTestAlertThread* is automatically called, which enables the delivery of another user mode APC. Thus, once a thread is user-mode alertable and an APC is delivered, further APCs are delivered one after the other until there are no APCs remaining in the user-mode APC queue.
 
 During the execution of a normal APC procedure, all system operations are available and page faults can be taken.
 
 Programming interfaces that support the APC object include:
 
-KeInitializeApc - Initialize an APC object
-KeFlushQueueApc - Flush all APC objects from APC queue
-KeInsertQueueApc - Insert APC object into APC queue
-KeRemoveQueueApc - Remove APC object from APC queue
+- **KeInitializeApc** - Initialize an APC object
+- **KeFlushQueueApc** - Flush all APC objects from APC queue
+- **KeInsertQueueApc** - Insert APC object into APC queue
+- **KeRemoveQueueApc** - Remove APC object from APC queue
 
 #### 2.2.1.1 Initialize APC
 
-An APC object can be initialized with the KeInitializeApc function:
+An APC object can be initialized with the **KeInitializeApc** function:
 
 ```
 VOID
@@ -1617,16 +1617,16 @@ KeInitializeApc (
 
 __Parameters:__
 
-Apc - A pointer to a control object of type APC.
-Thread - A pointer to a dispatcher object of type thread.
-Environment - The environment in which the APC will execute (OriginalApcEnvironment, AttachedApcEnvironment, or CurrentApcEnvironment).
-KernelRoutine - A pointer to a function that is to be executed at IRQL APC_LEVEL in kernel mode.
-RundownRoutine - An optional pointer to a function that is to be executed if the APC object is contained in a thread's APC queue when the thread terminates.
-NormalRoutine - An optional pointer to a function that is to be executed at IRQL 0 in the specified processor mode. If this parameter is not specified, then the ApcMode and NormalContext parameters are ignored.
-ApcMode - The processor mode (UserMode or KernelMode) in which the function specified by the NormalRoutine parameter is to be executed. This parameter is ignored if the NormalRoutine parameter is not specified.
-NormalContext - A pointer to an arbitrary data structure which is to be passed to the function specified by the NormalRoutine parameter. This parameter is ignored if the NormalRoutine parameter is not specified.
+- *Apc* - A pointer to a control object of type APC.
+- *Thread* - A pointer to a dispatcher object of type thread.
+- *Environment* - The environment in which the APC will execute (*OriginalApcEnvironment*, *AttachedApcEnvironment*, or *CurrentApcEnvironment*).
+- *KernelRoutine* - A pointer to a function that is to be executed at IRQL `APC_LEVEL` in kernel mode.
+- *RundownRoutine* - An optional pointer to a function that is to be executed if the APC object is contained in a thread's APC queue when the thread terminates.
+- *NormalRoutine* - An optional pointer to a function that is to be executed at IRQL 0 in the specified processor mode. If this parameter is not specified, then the *ApcMode* and *NormalContext* parameters are ignored.
+- *ApcMode* - The processor mode (*UserMode* or *KernelMode*) in which the function specified by the *NormalRoutine* parameter is to be executed. This parameter is ignored if the *NormalRoutine* parameter is not specified.
+- *NormalContext* - A pointer to an arbitrary data structure which is to be passed to the function specified by the *NormalRoutine* parameter. This parameter is ignored if the *NormalRoutine* parameter is not specified.
 
-The function specified by the KernelRoutine parameter has the following type definition:
+The function specified by the *KernelRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -1642,12 +1642,12 @@ VOID
 
 __Parameters:__
 
-Apc - A pointer to a control object of type APC.
-NormalRoutine - A pointer to a pointer to the normal routine function that was specified when the APC was initialized.
-NormalContext - A pointer to a pointer to an arbitrary data structure that was specified when the APC was initialized.
-SystemArgument1, SystemArgument2 - A set of two pointers to two arguments that contain untyped data.
+- *Apc* - A pointer to a control object of type APC.
+- *NormalRoutine* - A pointer to a pointer to the normal routine function that was specified when the APC was initialized.
+- *NormalContext* - A pointer to a pointer to an arbitrary data structure that was specified when the APC was initialized.
+- *SystemArgument1*, *SystemArgument2* - A set of two pointers to two arguments that contain untyped data.
 
-The function specified by the RundownRoutine parameter has the following type definition:
+The function specified by the *RundownRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -1659,9 +1659,9 @@ VOID
 
 __Parameters:__
 
-Apc - A pointer to a control object of type APC.
+- *Apc* - A pointer to a control object of type APC.
 
-The function specified by the NormalRoutine parameter has the following type definition:
+The function specified by the *NormalRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -1675,18 +1675,18 @@ VOID
 
 __Parameters:__
 
-NormalContext - A pointer to an arbitrary data structure that was specified when the corresponding APC object was initialized.
-SystemArgument1, SystemArgument2 - A set of two arguments that contain untyped data.
+- *NormalContext* - A pointer to an arbitrary data structure that was specified when the corresponding APC object was initialized.
+- *SystemArgument1*, *SystemArgument2* - A set of two arguments that contain untyped data.
 
-The type of APC object to be initialized is determined by the presence or absence of the optional NormalRoutine parameter. If the NormalRoutine parameter is present, then a normal APC object is initialized and the values of the ApcMode and NormalContext parameters are stored in the APC object. Otherwise, a special APC object is initialized for execution in kernel mode.
+The type of APC object to be initialized is determined by the presence or absence of the optional *NormalRoutine* parameter. If the *NormalRoutine* parameter is present, then a normal APC object is initialized and the values of the *ApcMode* and *NormalContext* parameters are stored in the APC object. Otherwise, a special APC object is initialized for execution in kernel mode.
 
-The Environment parameter specifies the execution environment of the specified APC object. An APC object can be executed in the context of a thread's parent process or a process to which the thread has attached.
+The *Environment* parameter specifies the execution environment of the specified APC object. An APC object can be executed in the context of a thread's parent process or a process to which the thread has attached.
 
-The KernelRoutine parameter specifies the procedure that is to be called in kernel mode at IRQL APC_LEVEL. This procedure is called with a copy of the parameters that are specified for the normal routine when the APC is initialized and can modify these parameters as necessary to alter the execution of the normal routine. If the normal routine is not specified when the APC is initialized, then any assignment to these parameters is ignored. 
+The *KernelRoutine* parameter specifies the procedure that is to be called in kernel mode at IRQL `APC_LEVEL`. This procedure is called with a copy of the parameters that are specified for the normal routine when the APC is initialized and can modify these parameters as necessary to alter the execution of the normal routine. If the normal routine is not specified when the APC is initialized, then any assignment to these parameters is ignored. 
 
-If specified, the RundownRoutine parameter specifies a procedure that is to be called when a thread terminates with the APC object in its APC queue. The purpose of this routine is to allow for special disposition of the APC object during thread rundown.
+If specified, the *RundownRoutine* parameter specifies a procedure that is to be called when a thread terminates with the APC object in its APC queue. The purpose of this routine is to allow for special disposition of the APC object during thread rundown.
 
-If specified, the NormalRoutine parameter specifies the procedure that is to be executed in the processor mode specified by the ApcMode parameter. This procedure will be called with the NormalContext parameter and two additional arguments provided by the system when the APC queued.
+If specified, the *NormalRoutine* parameter specifies the procedure that is to be executed in the processor mode specified by the ApcMode parameter. This procedure will be called with the NormalContext parameter and two additional arguments provided by the system when the APC queued.
 
 In order to actually interrupt the execution of a thread, an APC object must be inserted into one of the thread's APC queues (there is a separate APC queue for user and kernel mode).
 
@@ -1704,12 +1704,12 @@ KeFlushQueueApc (
 
 __Parameters:__
 
-Thread - A pointer to a dispatcher object of type thread.
-ApcMode - The processor mode (UserMode or KernelMode) of the APC queue that is to be flushed.
+- *Thread* - A pointer to a dispatcher object of type thread.
+- *ApcMode* - The processor mode (*UserMode* or *KernelMode*) of the APC queue that is to be flushed.
 
 An APC queue is flushed by removing the APC listhead from the list of APC entries, reinitializing the APC listhead, and returning the list of APC objects as the function value. If the APC queue is empty, then a NULL pointer is returned. Otherwise, the address of the list entry for the first APC object is returned as the function value. It is the responsibility of the caller to scan the list of APC objects and dispense with each object as appropriate.
 
-The APC objects are linked together by a list entry in each object. Scanning this list can be accomplished using the CONTAINING_RECORD function to locate the address of the respective APC object given the address of its list entry.
+The APC objects are linked together by a list entry in each object. Scanning this list can be accomplished using the `CONTAINING_RECORD` function to locate the address of the respective APC object given the address of its list entry.
 
 This function is used by the executive during thread termination to remove remaining entries from the thread's APC lists.
 
@@ -1729,11 +1729,11 @@ KeInsertQueueApc (
 
 __Parameters:__
 
-Apc - A pointer to a control object of type APC.
-SystemArgument1, SystemArgument2 - A set of two arguments that contain untyped data.
-Increment - The priority increment that is to be applied if queuing the APC causes the target thread's wait to be satisfied.
+- *Apc* - A pointer to a control object of type APC.
+- *SystemArgument1*, *SystemArgument2* - A set of two arguments that contain untyped data.
+- *Increment* - The priority increment that is to be applied if queuing the APC causes the target thread's wait to be satisfied.
 
-If the specified APC object is already in an APC queue (a boolean state variable records whether the APC object is in an APC queue) or APC queuing is disabled for the subject thread, then no operation is performed and a function value of FALSE is returned. Otherwise, the APC object is inserted into the APC queue specified by the ApcMode and Thread parameters that were supplied when the APC object was initialized and a function value of TRUE is returned.
+If the specified APC object is already in an APC queue (a boolean state variable records whether the APC object is in an APC queue) or APC queuing is disabled for the subject thread, then no operation is performed and a function value of FALSE is returned. Otherwise, the APC object is inserted into the APC queue specified by the *ApcMode* and *Thread* parameters that were supplied when the APC object was initialized and a function value of TRUE is returned.
 
 When proper enabling conditions are present, the APC will be delivered to the subject thread and the specified procedure(s) will be executed in the specified processor mode.
 
@@ -1741,7 +1741,7 @@ A special APC is deliverable whenever the IRQL of the subject thread is zero.
 
 A normal kernel APC is deliverable whenever the IRQL of the subject thread is zero, a normal kernel APC is not already in progress, and the subject thread does not own any mutexes.
 
-A normal user APC is deliverable when the subject thread waits user-mode alertable and when the subject thread calls KeTestAlertThread.
+A normal user APC is deliverable when the subject thread waits user-mode alertable and when the subject thread calls **KeTestAlertThread**.
 
 #### 2.2.1.4 Remove Queue APC
 
@@ -1756,28 +1756,29 @@ KeRemoveQueueApc (
 
 __Parameters:__
 
-Apc - A pointer to a control object of type APC.
+- *Apc* - A pointer to a control object of type APC.
+
 If the specified APC object is not currently in an APC queue (a boolean state variable records whether the APC object is in an APC queue), then a value of FALSE is returned and no operation is performed. Otherwise, the specified APC object is removed from its APC queue and a function value of TRUE is returned.
 
 ### 2.2.2 Deferred Procedure Call (DPC) Object
 
-A Deferred Procedure Call (DPC) object provides the capability to break into the execution of the current thread and cause a procedure to be executed in kernel mode at `IRQL DISPATCH_LEVEL`.
+A *Deferred Procedure Call* (DPC) object provides the capability to break into the execution of the current thread and cause a procedure to be executed in kernel mode at `IRQL DISPATCH_LEVEL`.
 
-There is one DPC queue for the entire system. When a DPC object is inserted in the DPC queue, a software interrupt is requested at DISPATCH_LEVEL on the current processor. As soon as the IRQL falls below DISPATCH_LEVEL, a software interrupt will be taken which will cause the DPC dispatcher to execute.
+There is one DPC queue for the entire system. When a DPC object is inserted in the DPC queue, a software interrupt is requested at `DISPATCH_LEVEL` on the current processor. As soon as the IRQL falls below `DISPATCH_LEVEL`, a software interrupt will be taken which will cause the DPC dispatcher to execute.
 
 The DPC dispatcher removes entries from the DPC queue, calls the specified procedure, and upon return, removes another entry from the queue. This is continued until there are no longer any entries in the DPC queue, at which time the DPC dispatcher checks to determine if another thread has been selected for execution on the current processor. If a thread has been selected, then a context switch to that thread is performed. Otherwise, the interrupt is dismissed and execution of the current thread is continued.
 
-A deferred procedure call occurs at IRQL DISPATCH_LEVEL in the context of whatever thread was interrupted when the DISPATCH_LEVEL interrupt occurred. A very limited set of operations can be performed by the DPC procedure.
+A deferred procedure call occurs at IRQL `DISPATCH_LEVEL` in the context of whatever thread was interrupted when the `DISPATCH_LEVEL` interrupt occurred. A very limited set of operations can be performed by the DPC procedure.
 
-No system services can be executed by the DPC procedure nor can any page faults be taken. The kernel services are generally available. However, the Wait functions can only be called if it is known that they will not actually cause a wait to occur. (Using an explicit time-out value of zero implements a conditional Wait operation). If page faults or waits were allowed, then it would be possible to randomly cause an arbitrary thread to wait in the kernel at IRQL DISPATCH_LEVEL causing possible deadlocks and data corruption.
+No system services can be executed by the DPC procedure nor can any page faults be taken. The kernel services are generally available. However, the Wait functions can only be called if it is known that they will not actually cause a wait to occur. (Using an explicit time-out value of zero implements a conditional Wait operation). If page faults or waits were allowed, then it would be possible to randomly cause an arbitrary thread to wait in the kernel at IRQL `DISPATCH_LEVEL` causing possible deadlocks and data corruption.
 
 Deferred procedure execution is intended mainly for use by device drivers that need to lower their IRQL to complete an I/O operation. The kernel itself, however, uses DPC objects to implement timers, quantum end, and power failure recovery.
 
 Programming interfaces that support the DPC object include:
 
-KeInitializeDpc - Initialize a DPC object
-KeInsertQueueDpc - Insert DPC object into the DPC queue
-KeRemoveQueueDpc - Remove DPC object from the DPC queue
+- **KeInitializeDpc** - Initialize a DPC object
+- **KeInsertQueueDpc** - Insert DPC object into the DPC queue
+- **KeRemoveQueueDpc** - Remove DPC object from the DPC queue
 
 #### 2.2.2.1 Initialize DPC
 
@@ -1794,11 +1795,11 @@ KeInitializeDpc (
 
 __Parameters:__
 
-Dpc - A pointer to a control object of type DPC.
-DeferredRoutine - A pointer to a function that is to be called when the DPC object is removed from the DPC queue.
-DeferredContext - A pointer to an arbitrary data structure that is to be passed to the function specified by the DeferredRoutine parameter.
+- *Dpc* - A pointer to a control object of type DPC.
+- *DeferredRoutine* - A pointer to a function that is to be called when the DPC object is removed from the DPC queue.
+- *DeferredContext* - A pointer to an arbitrary data structure that is to be passed to the function specified by the *DeferredRoutine* parameter.
 
-The function specified by the DeferredRoutine parameter has the following type definition:
+The function specified by the *DeferredRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -1813,9 +1814,9 @@ VOID
 
 __Parameters:__
 
-Dpc - A pointer to a control object of type DPC.
-DeferredContext - A pointer to an arbitrary data structure that was specified when the DPC was initialized.
-SystemArgument1, SystemArgument2 - A set of two arguments that contain untyped data.
+- *Dpc* - A pointer to a control object of type DPC.
+- *DeferredContext* - A pointer to an arbitrary data structure that was specified when the DPC was initialized.
+- *SystemArgument1*, *SystemArgument2* - A set of two arguments that contain untyped data.
 
 #### 2.2.2.2 Insert Queue DPC
 
@@ -1832,12 +1833,12 @@ KeInsertQueueDpc (
 
 __Parameters:__
 
-Dpc - A pointer to a control object of type DPC.
-SystemArgument1, SystemArgument2 - A set of two arguments that contain untyped data.
+- *Dpc* - A pointer to a control object of type DPC.
+- *SystemArgument1*, *SystemArgument2* - A set of two arguments that contain untyped data.
 
-If the specified DPC object is already in the DPC queue (a boolean state variable records whether the DPC object is in the DPC queue), then no operation is performed and a function value of FALSE is returned. Otherwise, the DPC object is inserted in the DPC queue, a software interrupt is request at IRQL DISPATCH_LEVEL on the current processor, and a function value of TRUE is returned.
+If the specified DPC object is already in the DPC queue (a boolean state variable records whether the DPC object is in the DPC queue), then no operation is performed and a function value of FALSE is returned. Otherwise, the DPC object is inserted in the DPC queue, a software interrupt is request at IRQL `DISPATCH_LEVEL` on the current processor, and a function value of TRUE is returned.
 
-The deferred procedure will be executed as soon as the IRQL of the current processor drops below DISPATCH_LEVEL.
+The deferred procedure will be executed as soon as the IRQL of the current processor drops below `DISPATCH_LEVEL`.
 
 #### 2.2.2.3 Remove Queue DPC
 
@@ -1852,22 +1853,23 @@ KeRemoveQueueDpc (
 
 __Parameters:__
 
-Dpc - A pointer to a control object of type DPC.
+- *Dpc* - A pointer to a control object of type DPC.
+
 If the specified DPC object is not currently in the DPC queue (a boolean state variable records whether the DPC object is in the DPC queue), then a value of FALSE is returned and no operation is performed. Otherwise, the specified DPC object is removed from the DPC queue and a function value of TRUE is returned.
 
 ### 2.2.3 Device Queue Object
 
-A device queue object is used to record the state of a device driver and to provide a queue into which I/O requests can be placed for subsequent processing.
+A *device queue object* is used to record the state of a device driver and to provide a queue into which I/O requests can be placed for subsequent processing.
 
-A device queue object has a state which is either Busy or Not-Busy.
+A device queue object has a state which is either *Busy* or *Not-Busy*.
 
-When the state of a device queue object is Not-Busy, the associated device driver is idle and therefore not performing any work.
+When the state of a device queue object is *Not-Busy*, the associated device driver is idle and therefore not performing any work.
 
-A device queue object transitions to the Busy state when an attempt is made to insert a device queue entry into a device queue that is empty. For this case, the device queue entry is not actually placed in the device queue, but rather, the device queue object is marked Busy and a boolean value of FALSE is returned to signify that the associated device driver should process the device queue entry immediately.
+A device queue object transitions to the *Busy* state when an attempt is made to insert a device queue entry into a device queue that is empty. For this case, the device queue entry is not actually placed in the device queue, but rather, the device queue object is marked *Busy* and a boolean value of FALSE is returned to signify that the associated device driver should process the device queue entry immediately.
 
-Once a device queue object is Busy, further I/O requests are placed in the device queue in either a FIFO or key-sorted order.
+Once a device queue object is *Busy*, further I/O requests are placed in the device queue in either a FIFO or key-sorted order.
 
-A device queue object transitions to a Not-Busy state when an attempt is made to remove a device queue entry from a device queue object and the corresponding device queue is empty.
+A device queue object transitions to a *Not-Busy* state when an attempt is made to remove a device queue entry from a device queue object and the corresponding device queue is empty.
 
 A device queue entry has the following type definition:
 
@@ -1881,11 +1883,11 @@ typedef struct _KDEVICE_QUEUE_ENTRY {
 
 Programming interfaces that support the device queue object include:
 
-KeInitializeDeviceQueue - Initialize a device queue
-KeInsertDeviceQueue - Insert entry at tail of device queue
-KeInsertByKeyDeviceQueue - Insert entry by key into device queue
-KeRemoveDeviceQueue - Remove entry from head of device queue
-KeRemoveEntryDeviceQueue - Remove entry from device queue
+- *KeInitializeDeviceQueue* - Initialize a device queue
+- *KeInsertDeviceQueue* - Insert entry at tail of device queue
+- *KeInsertByKeyDeviceQueue* - Insert entry by key into device queue
+- *KeRemoveDeviceQueue* - Remove entry from head of device queue
+- *KeRemoveEntryDeviceQueue* - Remove entry from device queue
 
 #### 2.2.3.1 Initialize Device Queue
 
@@ -1901,8 +1903,8 @@ KeInitializeDeviceQueue (
 
 __Parameters:__
 
-DeviceQueue - A pointer to a control object of type device queue.
-SpinLock - A pointer to an executive spin lock.
+- *DeviceQueue* - A pointer to a control object of type device queue.
+- *SpinLock* - A pointer to an executive spin lock.
 
 The device queue object data structure is initialized and the state of the device queue is set to Not-Busy.
 
@@ -1920,8 +1922,8 @@ KeInsertDeviceQueue (
 
 __Parameters:__
 
-DeviceQueue - A pointer to a control object of type device queue.
-DeviceQueueEntry - A pointer to the device queue entry that is to be inserted at the tail of the device queue.
+- *DeviceQueue* - A pointer to a control object of type device queue.
+- *DeviceQueueEntry* - A pointer to the device queue entry that is to be inserted at the tail of the device queue.
 
 The specified device queue spin lock is acquired, and the state of the device queue is checked.
 
@@ -1929,7 +1931,7 @@ If the state of the device queue is Not-Busy, then the state of the device queue
 
 If the state of the device queue is Busy, then the specified device queue entry is inserted at the tail of device queue, the device queue spin lock is released, and a value of TRUE is returned as the function value. 
 
-This function is intended for use by code that queues an I/O request to a device driver. It must be called from an IRQL of DISPATCH_LEVEL.
+This function is intended for use by code that queues an I/O request to a device driver. It must be called from an IRQL of `DISPATCH_LEVEL`.
 
 #### 2.2.3.3 Insert By Key Device Queue
 
@@ -1946,19 +1948,19 @@ KeInsertByKeyDeviceQueue (
 
 __Parameters:__
 
-DeviceQueue - A pointer to a control object of type device queue.
-DeviceQueueEntry - A pointer to the device queue entry that is to be inserted into the device queue by key.
-SortKey - The sort key value that is to be used to determine the position at which the device queue entry is to be inserted in the specified device queue.
+- *DeviceQueue* - A pointer to a control object of type device queue.
+- *DeviceQueueEntry* - A pointer to the device queue entry that is to be inserted into the device queue by key.
+- *SortKey* - The sort key value that is to be used to determine the position at which the device queue entry is to be inserted in the specified device queue.
 
 The specified device queue spin lock is acquired, and the state of the device queue is checked.
 
-If the state of the device queue is Not-Busy, then the state of the device queue is set to Busy, the device queue spin lock is released, and a value of FALSE is returned as the function value (i.e., the device queue entry is not inserted in the device queue). 
+If the state of the device queue is *Not-Busy*, then the state of the device queue is set to *Busy*, the device queue spin lock is released, and a value of FALSE is returned as the function value (i.e., the device queue entry is not inserted in the device queue). 
 
-If the state of the device queue is Busy, then the specified device queue entry is inserted into the device queue according to its sort key value, the device queue spin lock is released, and a value of TRUE is returned as the function value.
+If the state of the device queue is *Busy*, then the specified device queue entry is inserted into the device queue according to its sort key value, the device queue spin lock is released, and a value of TRUE is returned as the function value.
 
 Insertion in the device queue is such that the preceding entry in the queue has a sort key that is less than or equal to the new entry's sort key and the succeeding entry has a sort key that is greater than the new entry's sort key.
 
-This function is intended for use by code that queues an I/O request to a device driver. It must be called from an IRQL of DISPATCH_LEVEL.
+This function is intended for use by code that queues an I/O request to a device driver. It must be called from an IRQL of `DISPATCH_LEVEL`.
 
 #### 2.2.3.4 Remove Device Queue
 
@@ -1973,14 +1975,15 @@ KeRemoveDeviceQueue (
 
 __Parameters:__
 
-DeviceQueue - A pointer to a control object of type device queue.
-This function can only be called from an IRQL of DISPATCH_LEVEL and is intended for use by device driver code that completes one I/O request and starts the next one.
+- DeviceQueue - A pointer to a control object of type device queue.
+
+This function can only be called from an IRQL of `DISPATCH_LEVEL` and is intended for use by device driver code that completes one I/O request and starts the next one.
 
 The specified device queue spin lock is acquired and the state of the device queue is checked.
 
-If the state of the device queue is Not-Busy, then a bug check will occur (i.e., KeRemoveDeviceQueue cannot be called when the device queue is Not-Busy).
+If the state of the device queue is *Not-Busy*, then a bug check will occur (i.e., **KeRemoveDeviceQueue** cannot be called when the device queue is *Not-Busy*).
 
-If the state of the device queue is Busy, then an attempt is made to remove an entry from the head of the device queue. If the device queue is empty, then the state of the device queue is set to Not-Busy and a NULL pointer is returned as the function value. Otherwise, the next entry is removed from the head of the device queue, the inserted status of the entry is set to FALSE, and the address of the entry is returned as the function value.
+If the state of the device queue is *Busy*, then an attempt is made to remove an entry from the head of the device queue. If the device queue is empty, then the state of the device queue is set to *Not-Busy* and a NULL pointer is returned as the function value. Otherwise, the next entry is removed from the head of the device queue, the inserted status of the entry is set to FALSE, and the address of the entry is returned as the function value.
 
 The specified device queue spin lock is released.
 
@@ -1998,33 +2001,33 @@ KeRemoveEntryDeviceQueue (
 
 __Parameters:__
 
-DeviceQueue - A pointer to a control object of type device queue.
-DeviceQueueEntry - A pointer to the device queue entry that is to be removed from the specified device queue.
+- *DeviceQueue* - A pointer to a control object of type device queue.
+- *DeviceQueueEntry* - A pointer to the device queue entry that is to be removed from the specified device queue.
 
-The IRQL is raised to DISPATCH_LEVEL and the specified device queue spin lock is acquired.
+The IRQL is raised to `DISPATCH_LEVEL` and the specified device queue spin lock is acquired.
 
 If the specified device queue entry is currently in a device queue (a boolean state variable records whether a device queue entry is in a device queue), then the device queue entry is removed from the device queue, the inserted status of the device queue entry is set to FALSE, and a value of TRUE is returned as the function value. Otherwise, the specified device queue entry is not in a device queue and a value of FALSE is returned.
 
 The specified device queue spin lock is released and IRQL is restored to its previous value.
 
-This function is intended for use in canceling I/O operations and is callable from any IRQL that is less than or equal to DISPATCH_LEVEL.
+This function is intended for use in canceling I/O operations and is callable from any IRQL that is less than or equal to `DISPATCH_LEVEL`.
 
 ### 2.2.4 Interrupt Object
 
-An interrupt object provides the capability to connect an interrupt source to an interrupt service routine via an entry in an Interrupt Dispatch Table (IDT).  Each processor has an IDT that is used to dispatch interrupts which occur on that processor.
+An *interrupt object* provides the capability to connect an interrupt source to an interrupt service routine via an entry in an Interrupt Dispatch Table (IDT). Each processor has an IDT that is used to dispatch interrupts which occur on that processor.
 
 The IDT is a software-defined table that contains an entry for each of the Interrupt Request Levels (IRQLs). When an interrupt occurs at one of these levels, the interrupt dispatcher reads the IRQL of the interrupting source from the interrupt controller. This value is then used to locate the corresponding entry in the IDT that is used to dispatch the execution of the associated service routine.
 
 Several of the IDT entries are reserved for use by the kernel and cannot be connected to interrupt objects. These entries include the following:
 
-- PASSIVE_LEVEL - Passive release
-- APC_LEVEL - Asynchronous Procedure Call
-- DISPATCH_LEVEL - Dispatch and Deferred Procedure Call
-- WAKE_LEVEL - Wake system debugger
-- CLOCK2_LEVEL - Interval timer
-- IPI_LEVEL - Interprocessor request
-- POWER_LEVEL - Power failure
-- HIGH_LEVEL - Machine check
+- `PASSIVE_LEVEL` - Passive release
+- `APC_LEVEL` - Asynchronous Procedure Call
+- `DISPATCH_LEVEL` - Dispatch and Deferred Procedure Call
+- `WAKE_LEVEL` - Wake system debugger
+- `CLOCK2_LEVEL` - Interval timer
+- `IPI_LEVEL` - Interprocessor request
+- `POWER_LEVEL` - Power failure
+- `HIGH_LEVEL` - Machine check
 
 The remaining levels can be used for device interrupts or bus adapters.
 
@@ -2039,13 +2042,13 @@ BOOLEAN
 	);
 ```
 
-Interrupt sources are classified as either LevelSensitive or Latched. Level sensitive interrupts request an interrupt whenever the corresponding interrupt request signal is asserted. The service routine associated with the interrupt source must remove the cause of the interrupt before the interrupt request is dropped. Latched interrupts are requested whenever the corresponding interrupt request signal transitions from the deasserted to the asserted state.
+Interrupt sources are classified as either *LevelSensitive* or *Latched*. Level sensitive interrupts request an interrupt whenever the corresponding interrupt request signal is asserted. The service routine associated with the interrupt source must remove the cause of the interrupt before the interrupt request is dropped. Latched interrupts are requested whenever the corresponding interrupt request signal transitions from the deasserted to the asserted state.
 
 An interrupt object can only be connected to a single IDT entry. If a particular service routine must be connected to the same interrupt on multiple processors, then multiple interrupt objects must be used. Multiple interrupt objects can be connected to a single IDT entry. They must, however, all have the same interrupt type (i.e., level sensitive or latched).
 
 Interrupt objects are intended for use by device drivers.
 
-> Kernel code that utilizes interrupts directly does not connect interrupts using this object. These interrupts include the interval timer, power failure, machine check, and the two software interrupt levels. The code for these interrupts is written in assembler since it is small and system dependent.
+> *Kernel code that utilizes interrupts directly does not connect interrupts using this object. These interrupts include the interval timer, power failure, machine check, and the two software interrupt levels. The code for these interrupts is written in assembler since it is small and system dependent.*
 
 Programming interfaces that support the interrupt object include:
 
@@ -2077,19 +2080,19 @@ KeInitializeInterrupt (
 
 __Parameters:__
 
-Interrupt - A pointer to a control object of type interrupt.
-ServiceRoutine - A pointer to a function that is to be called when an interrupt occurs on the specified processor through the specified IDT entry.
-ServiceContext - A pointer to an arbitrary data structure which will be passed to the ServiceRoutine function as a parameter.
-SpinLock - A pointer to an spin lock that is to be used to synchronize the execution of the ServiceRoutine function with the corresponding device driver.
-Vector - The index of the entry in the specified IDT that is to be associated with ServiceRoutine function.
-InterruptIrql - The request priority of the interrupting source.
-SynchronizeIrql - The request priority that the interrupt should be synchronzied with.
-InterruptMode - The mode of the interrupt (LevelSensitive or Latched).
-ShareVector - A boolean that specifies whether the interrupt vector to which the object is connected may be shared.  If FALSE then the vector may not be shared, if TRUE it may be.
-ProcessorNumber - The number of the processor whose IDT is to used when connecting the interrupt.
-FloatingSave - A boolean variable that specifies whether the floating point context needs to be saved when a interrupt is received from the interrupt source.
+- *Interrupt* - A pointer to a control object of type interrupt.
+- *ServiceRoutine* - A pointer to a function that is to be called when an interrupt occurs on the specified processor through the specified IDT entry.
+- *ServiceContext* - A pointer to an arbitrary data structure which will be passed to the *ServiceRoutine* function as a parameter.
+- *SpinLock* - A pointer to an spin lock that is to be used to synchronize the execution of the *ServiceRoutine* function with the corresponding device driver.
+- *Vector* - The index of the entry in the specified IDT that is to be associated with *ServiceRoutine* function.
+- *InterruptIrql* - The request priority of the interrupting source.
+- *SynchronizeIrql* - The request priority that the interrupt should be synchronzied with.
+- *InterruptMode* - The mode of the interrupt (LevelSensitive or Latched).
+- *ShareVector* - A boolean that specifies whether the interrupt vector to which the object is connected may be shared.  If FALSE then the vector may not be shared, if TRUE it may be.
+- *ProcessorNumber* - The number of the processor whose IDT is to used when connecting the interrupt.
+- *FloatingSave* - A boolean variable that specifies whether the floating point context needs to be saved when a interrupt is received from the interrupt source.
 
-The function specified by the ServiceRoutine parameter has the following type definition:
+The function specified by the *ServiceRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -2102,26 +2105,26 @@ BOOLEAN
 
 __Parameters:__
 
-Interrupt - A pointer to a control object of type interrupt which is connected to the associated interrupt source.
-ServiceContext - A pointer to an arbitrary data structure that was specified when the corresponding interrupt object was initialized.
+- *Interrupt* - A pointer to a control object of type interrupt which is connected to the associated interrupt source.
+- *ServiceContext* - A pointer to an arbitrary data structure that was specified when the corresponding interrupt object was initialized.
 
-The interrupt object is initialized with the specified parameters. In order for the function specified by the ServiceRoutine parameter to actually get called when an interrupt is received from the interrupt source, the interrupt object must be connected to the specified IDT entry using the KeConnectInterrupt function.
+The interrupt object is initialized with the specified parameters. In order for the function specified by the *ServiceRoutine* parameter to actually get called when an interrupt is received from the interrupt source, the interrupt object must be connected to the specified IDT entry using the **KeConnectInterrupt** function.
 
-The spin lock specified by the SpinLock parameter is used to synchronize execution. 
+The spin lock specified by the *SpinLock* parameter is used to synchronize execution. 
 
-If SynchronizeIrql is not equal to InterruptIrql, then the system will raise its priority level to SynchronizeIrql level before acquiring the lock specified by SpinLock.  This allows support for devices with multiple interrupt sources, since all can be synchronized with a single spin lock at a single priority level.
+If *SynchronizeIrql* is not equal to *InterruptIrql*, then the system will raise its priority level to *SynchronizeIrql* level before acquiring the lock specified by SpinLock.  This allows support for devices with multiple interrupt sources, since all can be synchronized with a single spin lock at a single priority level.
 
-It is an error for SynchronizeIrql to be less than InterruptIrql, the system will refuse to connect such an interrupt object. 
+It is an error for *SynchronizeIrql* to be less than *InterruptIrql*, the system will refuse to connect such an interrupt object. 
 
-An interrupt object can only be connected to a single IDT entry on a single processor. The Vector parameter specifies the IDT entry and the ProcessorNumber parameter specifies which IDT is to be used. If a particular service routine must be connected to the same IDT entry on multiple processors, then multiple interrupt objects must be used. More than one interrupt object, however, can be connected to the same IDT entry on the same processor, but all such interrupt objects must have been initialized with ShareVector set to TRUE.  When this happens, appropriate data structures are automatically set up to call each connected interrupt service routine one after the other.
+An interrupt object can only be connected to a single IDT entry on a single processor. The Vector parameter specifies the IDT entry and the *ProcessorNumber* parameter specifies which IDT is to be used. If a particular service routine must be connected to the same IDT entry on multiple processors, then multiple interrupt objects must be used. More than one interrupt object, however, can be connected to the same IDT entry on the same processor, but all such interrupt objects must have been initialized with *ShareVector* set to TRUE.  When this happens, appropriate data structures are automatically set up to call each connected interrupt service routine one after the other.
 
-The mode of the interrupt specifies whether the interrupt is a LevelSensitive or Latched interrupt. Level sensitive interrupts are continually requested as long as the interrupt signal stays asserted. Therefore, the interrupt service routine must remove the reason for the interrupt before returning control. Latched interrupts are requested only on the transition of the interrupt signal from deasserted to asserted. The function specified by the ServiceRoutine parameter must return a boolean value that signifies whether the interrupt was handled or not.
+The mode of the interrupt specifies whether the interrupt is a *LevelSensitive* or *Latched* interrupt. Level sensitive interrupts are continually requested as long as the interrupt signal stays asserted. Therefore, the interrupt service routine must remove the reason for the interrupt before returning control. Latched interrupts are requested only on the transition of the interrupt signal from deasserted to asserted. The function specified by the *ServiceRoutine* parameter must return a boolean value that signifies whether the interrupt was handled or not.
 
-The ShareVector parameter declares whether the interrupt object may be connected to its interrupt vector at the same time as other interrupt objects.  All interrupt objects sharing an interrupt vector must have ShareVector set to TRUE.  The system may disallow sharing of an interrupt vector, even if all interrupt objects for which connections are attempted have ShareVector set to TRUE.  This could happen because the underlying hardware does not support sharing. 
+The *ShareVector* parameter declares whether the interrupt object may be connected to its interrupt vector at the same time as other interrupt objects.  All interrupt objects sharing an interrupt vector must have *ShareVector* set to TRUE.  The system may disallow sharing of an interrupt vector, even if all interrupt objects for which connections are attempted have *ShareVector* set to TRUE.  This could happen because the underlying hardware does not support sharing. 
 
-The FloatingSave parameter specifies whether the ServiceRoutine function uses the floating point registers. If this parameter is TRUE, then the floating context is saved before calling the specified service routine. Otherwise, it is not saved and a fair amount of overhead is saved.
+The *FloatingSave* parameter specifies whether the *ServiceRoutine* function uses the floating point registers. If this parameter is TRUE, then the floating context is saved before calling the specified service routine. Otherwise, it is not saved and a fair amount of overhead is saved.
 
-> This parameter is being provided with the hope that a compiler option will be implemented that allows a module to be compiled such that it will not use the floating point registers. This option does not currently exist and this parameter should always be specified as TRUE.
+> *This parameter is being provided with the hope that a compiler option will be implemented that allows a module to be compiled such that it will not use the floating point registers. This option does not currently exist and this parameter should always be specified as TRUE.*
 
 Initializing an interrupt causes code to be generated that will synchronize execution with the appropriate interrupt object, call the specified interrupt service routine, and dismiss the interrupt.
 
@@ -2138,9 +2141,9 @@ KeConnectInterrupt (
 
 __Parameters:__
 
-Interrupt - A pointer to a control object of type interrupt.
+- *Interrupt* - A pointer to a control object of type interrupt.
 
-If the specified interrupt object is already connected (a boolean state variable records whether the interrupt object is connected), the specified vector number is greater than the maximum vector, the specified IRQL is greater than HIGH_LEVEL, the specified level cannot be connected to (e.g., a reserved level, sharing conflicts), or the specified processor number is greater than the number of processors in the configuration, then no operation is performed and a function value of FALSE is returned. Otherwise, the interrupt object is connected to the IDT entry that was specified when the interrupt object was initialized and a function value of TRUE is returned.
+If the specified interrupt object is already connected (a boolean state variable records whether the interrupt object is connected), the specified vector number is greater than the maximum vector, the specified IRQL is greater than `HIGH_LEVEL`, the specified level cannot be connected to (e.g., a reserved level, sharing conflicts), or the specified processor number is greater than the number of processors in the configuration, then no operation is performed and a function value of FALSE is returned. Otherwise, the interrupt object is connected to the IDT entry that was specified when the interrupt object was initialized and a function value of TRUE is returned.
 
 Once an interrupt object is connected to an IDT entry, the corresponding service routine will be called each time an interrupt is received from that interrupt source. If multiple interrupt objects are connected to a single IDT entry, then the service routines are called in the order in which they were connected.
 
@@ -2157,7 +2160,7 @@ KeDisconnectInterrupt (
 
 __Parameters:__
 
-Interrupt - A pointer to a control object of type interrupt.
+- *Interrupt* - A pointer to a control object of type interrupt.
 
 If the specified interrupt object is not connected (a boolean state variable records whether the interrupt object is connected), then no operation is performed and a function value of FALSE is returned. Otherwise, the interrupt object is disconnected from the IDT entry that was specified when the interrupt object was initialized and a function value of TRUE is returned.
 
@@ -2178,11 +2181,11 @@ KeSynchronizeExecution (
 
 __Parameters:__
 
-Interrupt - A pointer to a control object of type interrupt.
-SynchronizeRoutine - A pointer to a device driver function whose execution is to be synchronized with the execution of the service routine associated with the specified interrupt object.
-SynchronizeContext - A pointer to an arbitrary data structure which is to be passed to the function specified by the SynchronizeRoutine parameter.
+- *Interrupt* - A pointer to a control object of type interrupt.
+- *SynchronizeRoutine* - A pointer to a device driver function whose execution is to be synchronized with the execution of the service routine associated with the specified interrupt object.
+- *SynchronizeContext* - A pointer to an arbitrary data structure which is to be passed to the function specified by the *SynchronizeRoutine* parameter.
 
-The function specified by the SynchronizeRoutine parameter has the following type definition:
+The function specified by the *SynchronizeRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -2194,19 +2197,19 @@ BOOLEAN
 
 __Parameters:__
 
-ServiceContext - A pointer to an arbitrary data structure that was specified when the call to KeSynchronizeExecution was executed.
+- *ServiceContext* - A pointer to an arbitrary data structure that was specified when the call to *KeSynchronizeExecution* was executed.
 
 This function is used by a device driver to synchronize execution with a service routine which may be executing on another processor in a multiprocessor configuration. Such synchronization is only necessary in those cases where both the service routine and device driver access the same resources in a way that requires mutually exclusive access.
 
-When this function is executed, the IRQL is raised to the level specified by the interrupt source's interrupt object (the higher of InterruptIrql and SynchronizeIrql), access is synchronized with the corresponding service routine by acquiring the associated spin lock, and then the specified routine is called. The routine should access resources as necessary and return a boolean value. Upon return, the IRQL is restored and the boolean value is returned as the function value.
+When this function is executed, the IRQL is raised to the level specified by the interrupt source's interrupt object (the higher of *InterruptIrql* and *SynchronizeIrql*), access is synchronized with the corresponding service routine by acquiring the associated spin lock, and then the specified routine is called. The routine should access resources as necessary and return a boolean value. Upon return, the IRQL is restored and the boolean value is returned as the function value.
 
 Routines executed with this function execute at an elevated IRQL and must be very short in duration. It is intended that these routines be used for such purposes as loading device registers and should be only a few microseconds in length.
 
-The boolean return value is intended to be attached to the occurrence of a power failure. A device driver can use a power status object to record the occurrence of a power failure. The synchronize routine should raise IRQL to POWER_LEVEL and test the corresponding status variable before loading any device registers. If the value is TRUE, then power has failed and the device may not be in an appropriate state. If the value is FALSE, then power has not failed and a sequence of device register loads can be performed without a power failure since power failure interrupts are disabled.
+The boolean return value is intended to be attached to the occurrence of a power failure. A device driver can use a power status object to record the occurrence of a power failure. The synchronize routine should raise IRQL to `POWER_LEVEL` and test the corresponding status variable before loading any device registers. If the value is TRUE, then power has failed and the device may not be in an appropriate state. If the value is FALSE, then power has not failed and a sequence of device register loads can be performed without a power failure since power failure interrupts are disabled.
 
 ### 2.2.5 Power Notify Object
 
-A power notify object provides the capability to automatically have a specified function called when power is restored after a power failure.
+A *power notify object* provides the capability to automatically have a specified function called when power is restored after a power failure.
 
 This object is intended for use by device drivers and other code that needs to be asynchronously notified via a function call when power is restored after a failure. The function call can be used to reinitialize device state, restart I/O operations, etc.
 
@@ -2240,11 +2243,11 @@ KeInitializePowerNotify (
 
 __Parameters:__
 
-PowerNotify - A pointer to a control object of type power notify.
-NotifyRoutine - A pointer to a function that is to be called when power is restored after a power failure.
-NotifyContext - A pointer to an arbitrary data structure which will be passed to the NotifyRoutine as a parameter.
+- *PowerNotify* - A pointer to a control object of type power notify.
+- *NotifyRoutine* - A pointer to a function that is to be called when power is restored after a power failure.
+- *NotifyContext* - A pointer to an arbitrary data structure which will be passed to the *NotifyRoutine* as a parameter.
 
-The function specified by the NotifyRoutine parameter has the following type definition:
+The function specified by the *NotifyRoutine* parameter has the following type definition:
 
 ```
 typedef
@@ -2256,7 +2259,7 @@ VOID
 
 __Parameters:__
 
-NotifyContext - A pointer to an arbitrary data structure that was specified when the power notify object was initialized.
+- *NotifyContext* - A pointer to an arbitrary data structure that was specified when the power notify object was initialized.
 
 The power notify object data structure is initialized.
 
@@ -2275,7 +2278,7 @@ KeInsertQueuePowerNotify (
 
 __Parameters:__
 
-PowerNotify - A pointer to a control object of type power notify.
+- *PowerNotify* - A pointer to a control object of type power notify.
 
 If the specified power notify object is already in the power notify queue (a boolean state variable records whether the power notify object is in the power notify queue), then no operation is performed and a function value of FALSE is returned. Otherwise, the power notify object is inserted in the power notify queue and a function value of TRUE is returned.
 
@@ -2294,13 +2297,13 @@ KeRemoveQueuePowerNotify (
 
 __Parameters:__
 
-PowerNotify - A pointer to a control object of type power notify.
+- *PowerNotify* - A pointer to a control object of type power notify.
 
 If the power notify object is not in the power notify queue (a boolean state variable records whether the power notify object is in the power notify queue), then no operation is performed and a function value of FALSE is returned. Otherwise, the power notify object is removed from the power notify queue and a function value of TRUE is returned.
 
 ### 2.2.6 Power Status Object
 
-A power status object provides the capability to automatically have a boolean state variable set to a value of TRUE when power is restored after a power failure.
+A *power status object* provides the capability to automatically have a boolean state variable set to a value of TRUE when power is restored after a power failure.
 
 This object is intended for use by device drivers and other code which needs to synchronize access to volatile register and device state such that a power failure does not leave the registers or device in an indeterminate state. The boolean value can be interrogated at critical points during driver execution to determine whether a given operation should be continued or restarted.
 
@@ -2325,7 +2328,7 @@ KeInitializePowerStatus (
 
 __Parameters:__
 
-PowerStatus - A pointer to a control object of type power status.
+- *PowerStatus* - A pointer to a control object of type power status.
 The power status object data structure is initialized.
 
 In order to actually have a boolean variable set to a value of TRUE when power is restored after a failure, the power status object must be inserted in the power status queue.
@@ -2344,8 +2347,8 @@ KeInsertQueuePowerStatus (
 
 __Parameters:__
 
-PowerStatus - A pointer to a control object of type power status.
-Status - A pointer to a boolean variable that is to be set to a value of TRUE when power is restored after a failure.
+- *PowerStatus* - A pointer to a control object of type power status.
+- *Status* - A pointer to a boolean variable that is to be set to a value of TRUE when power is restored after a failure.
 
 If the specified power status object is already in the power status queue (a boolean state variable records whether the power status object is in the power status queue), then no operation is performed and a function value of FALSE is returned. Otherwise, the power status object is inserted in the power status queue, the specified boolean variable is set to a value of FALSE, and a function value of TRUE is returned.
 
@@ -2364,7 +2367,7 @@ KeRemoveQueuePowerStatus (
 
 __Parameters:__
 
-PowerStatus - A pointer to a control object of type power status.
+- *PowerStatus* - A pointer to a control object of type power status.
 
 If the power status object is not in the power status queue (a boolean state variable records whether the power status object is in the power status queue), then no operation is performed and a function value of FALSE is returned. Otherwise, the power status object is removed from the power status queue and a function value of TRUE is returned.
 
@@ -2408,11 +2411,11 @@ KeInitializeProcess (
 
 __Parameters:__
 
-- Process - A pointer to a control object of type process.
-- BasePriority - The base priority of the process.
-- Affinity - The set of processors on which children threads of the process can execute.
-- DirectoryTableBase - The value that is to be loaded into the Directory Table Base Register when a child thread of the process is dispatched for execution.
-- Enable - A boolean variable that specifies the default handling mode for data alignment exceptions in children threads.
+- *Process* - A pointer to a control object of type process.
+- *BasePriority* - The base priority of the process.
+- *Affinity* - The set of processors on which children threads of the process can execute.
+- *DirectoryTableBase* - The value that is to be loaded into the Directory Table Base Register when a child thread of the process is dispatched for execution.
+- *Enable* - A boolean variable that specifies the default handling mode for data alignment exceptions in children threads.
 
 The process object data structure is initialized with the specified base priority, affinity, directory table base, and default alignment exception handling mode. The process and thread quantum values are initialized with system default values and the process is not considered to be in the balance set.
 
@@ -2480,7 +2483,7 @@ KeExcludeProcess (
 
 __Parameters:__
 
-- Process - A pointer to a control object of type process.
+- *Process* - A pointer to a control object of type process.
 
 The specified process is excluded from the balance set and its children threads will be removed from further consideration by the thread dispatcher when they no longer own any mutexes and do not have another process's address space attached.
 
@@ -2505,7 +2508,7 @@ KeIncludeProcess (
 
 __Parameters:__
 
-- Process - A pointer to a control object of type process.
+- *Process* - A pointer to a control object of type process.
 
 The specified process is included in the balance set and the process's ready queue is scanned. The process ready queue is a list of threads that are ready to run, but which were moved to the process ready queue when they were encountered in one of the dispatcher ready queues. Each thread in the list is removed and readied for execution.
 
@@ -2525,8 +2528,8 @@ KeSetPriorityProcess (
 
 __Parameters:__
 
-- Process - A pointer to a control object of type process.
-- BasePriority - The new base priority of the process object.
+- *Process* - A pointer to a control object of type process.
+- *BasePriority* - The new base priority of the process object.
 
 The base priority of the specified process is set to the specified value and the priority of all the process's children threads are adjusted as appropriate.
 If the new priority is in the realtime class, then the priority of each child thread is set to the new base priority.
@@ -2551,9 +2554,9 @@ Profiling works by sampling the processors PC using a periodic interrupt.  The h
 
 When profiling is off, it consumes no processor cycles, and thus may be present in any system.  When turned on, the burden it places on the system is inversely proportional to the profiling interval set with **KeSetIntervalProfile** and proportional to the number of active (started) profile objects.  A small number of profile objects may be active at any one time.
 
-> **IMPLEMENTATION NOTE:**
-> 
-> On symmetric MP machines, profiling interrupts occur on all processors (at the same rate).  On asymmetric machines (i.e., the SystemPro) slave processors do NOT do profiling.
+**IMPLEMENTATION NOTE:**
+
+On symmetric MP machines, profiling interrupts occur on all processors (at the same rate).  On asymmetric machines (i.e., the SystemPro) slave processors do NOT do profiling.
 
 Programming interfaces that support the profile object include:
 
@@ -2580,11 +2583,11 @@ KeInitializeProfile (
 
 __Parameters:__
 
-- Profile - A pointer to a control object of type profile.
-- Process - If specified, a pointer to a kernel process object that describes the address space to profile. If not specified, then all address spaces are included in the profile.
-- RangeBase - Address of the first byte of the address range for which profiling information is to be collected.
-- RangeSize - Size of the address range for which profiling information is to be collected. The RangeBase and RangeSize parameters are interpreted such that RangeBase <= address < RangeBase+RangeSize generates a profile hit.
-- BucketSize - Log base 2 of the size of a profiling bucket. Thus, BucketSize = 2 yields 4-byte buckets, BucketSize = 7 yields 128-byte buckets.  All profile hits in a given bucket increment the corresponding counter in Buffer.  Buckets cannot be smaller than a ULONG.
+- *Profile* - A pointer to a control object of type profile.
+- *Process* - If specified, a pointer to a kernel process object that describes the address space to profile. If not specified, then all address spaces are included in the profile.
+- *RangeBase* - Address of the first byte of the address range for which profiling information is to be collected.
+- *RangeSize* - Size of the address range for which profiling information is to be collected. The *RangeBase* and *RangeSize* parameters are interpreted such that *RangeBase* <= address < *RangeBase*+*RangeSize* generates a profile hit.
+- *BucketSize* - Log base 2 of the size of a profiling bucket. Thus, *BucketSize* = 2 yields 4-byte buckets, *BucketSize* = 7 yields 128-byte buckets.  All profile hits in a given bucket increment the corresponding counter in Buffer.  Buckets cannot be smaller than a `ULONG`.
 
 The profile object is initialized with the specified parameter values, and its state is set to stopped. **KeStartProfile** must be called to actually start profiling.
 
@@ -2602,10 +2605,10 @@ KeStartProfile (
 
 __Parameters:__
 
-- Profile - A pointer to a control object of type profile.
-- Buffer - Array of ULONGs.  Each ULONG is a hit counter, which records the number of hits in the corresponding bucket.  The Buffer must be accessible at DPC_LEVEL and above.
+- *Profile* - A pointer to a control object of type profile.
+- *Buffer* - Array of `ULONG`s.  Each `ULONG` is a hit counter, which records the number of hits in the corresponding bucket.  The Buffer must be accessible at `DPC_LEVEL` and above.
 
-The value TRUE is returned if the profile object is successfully started.  FALSE is returned if the object is already in the started state.  An exception (STATUS_INSUFFICIENT_RESOURCES) is raised if there are insufficient resources available to make the profile active.
+The value TRUE is returned if the profile object is successfully started.  FALSE is returned if the object is already in the started state.  An exception (`STATUS_INSUFFICIENT_RESOURCES`) is raised if there are insufficient resources available to make the profile active.
 
 #### 2.2.8.3 Stop Profile
 
@@ -2620,7 +2623,7 @@ KeStopProfile (
 
 __Parameters:__
 
-- Profile - A pointer to a control object of type profile.
+- *Profile* - A pointer to a control object of type profile.
 
 TRUE is returned if the profile is successfully stopped, FALSE if it is not already in the started state.  Once a profile is stopped, no more updates are written into its buffer.
 
@@ -2637,15 +2640,15 @@ KeSetIntervalProfile (
 
 __Parameters:__
 
-- Interval - The sampling interval in 100ns units.
+- *Interval* - The sampling interval in 100ns units.
 
 The actual interval set by the system is the closest available, but may differ significantly.  **KeQueryIntervalProfile** returns the actual value in use by the system.
 
 The value is set globally; it affects all profiles on all processors.
 
-> **IMPLEMENTATION NOTE:**
-> 
-> PC-based i386 and i486 machines offer sampling intervals from about 10,000 units (1 millisecond) to 300 units (30 microseconds).
+**IMPLEMENTATION NOTE:**
+
+PC-based i386 and i486 machines offer sampling intervals from about 10,000 units (1 millisecond) to 300 units (30 microseconds).
 
 #### 2.2.8.5 Query System Profile Interval
 
@@ -2657,7 +2660,7 @@ KeQueryIntervalProfile (
 	);
 ```
 
-The current profile sampling interval is returned in units of 100ns.  This is the value the system is actually using, and thus may be different from the value set with KeSetIntervalProfile.
+The current profile sampling interval is returned in units of 100ns.  This is the value the system is actually using, and thus may be different from the value set with **KeSetIntervalProfile**.
 
 3\. Wait Operations
 ===================
@@ -2668,7 +2671,7 @@ At some future point, a cooperating thread or system operation will cause the sp
 
 The kernel Wait functions also allow a thread to wait on more than one dispatcher object at a time. The conditions under which the Wait will be satisfied can be specified as *WaitAny* or *WaitAll*.
 
-If *WaitAny* is specified, then the Wait will be satisfied when any of the objects attain a state of Signaled. If *WaitAll* is specified, then the Wait will not be satisfied until all of the objects concurrently attain a state of Signaled.
+If *WaitAny* is specified, then the Wait will be satisfied when any of the objects attain a state of Signaled. If *WaitAll* is specified, then the Wait will not be satisfied until all of the objects *concurrently* attain a state of Signaled.
 
 Each Wait operation can optionally specify a timeout value. If a timeout value is specified, then the Wait will be automatically satisfied if the timeout period is exceeded without the Wait being satisfied in the normal manner.
 
@@ -2678,7 +2681,7 @@ Wait operations can be alertable or nonalertable. If a wait is alertable and the
 
 Wait operations also take a processor mode as a parameter which specifies on whose behalf the Wait is actually occurring. This is required since executive code itself performs the Wait operation and the previous mode of the processor is not necessarily the correct mode. This mode determines what happens when the subject thread is alerted or an APC is queued while the thread is in a Waiting state.
 
-Each Wait operation also takes a Wait reason as a parameter. The Wait reason is an enumerated type supplied by the kernel and is used for debugging system code and for system management functions (i.e., it will be possible to display the reason a thread is in a Waiting state).
+Each Wait operation also takes a Wait reason as a parameter. The Wait reason is an enumerated type supplied by the kernel and is used for debugging system code and for system management functions (*i.e.*, it will be possible to display the reason a thread is in a Waiting state).
 
 Programming interfaces that support wait operations include:
 
@@ -2705,14 +2708,14 @@ KeWaitForMultipleObjects (
 
 __Parameters:__
 
-- Count - A count of the number of objects that are to be waited on.
-- Objects - An array of pointers to dispatcher objects.
-- WaitType - The type of wait operation that is to be performed (WaitAny or WaitAll).
-- WaitReason - The reason for the Wait.
-- WaitMode - The processor mode on whose behalf the Wait is occurring.
-- Alertable - A boolean value that specifies whether the Wait is alertable.
-- Timeout - An optional pointer to timeout value that specifies the absolute or relative time over which the Wait is to be completed.
-- WaitBlockArray - An optional pointer to an array of wait blocks that are to be used to describe the wait operation.
+- *Count* - A count of the number of objects that are to be waited on.
+- *Objects* - An array of pointers to dispatcher objects.
+- *WaitType* - The type of wait operation that is to be performed (WaitAny or WaitAll).
+- *WaitReason* - The reason for the Wait.
+- *WaitMode* - The processor mode on whose behalf the Wait is occurring.
+- *Alertable* - A boolean value that specifies whether the Wait is alertable.
+- *Timeout* - An optional pointer to timeout value that specifies the absolute or relative time over which the Wait is to be completed.
+- *WaitBlockArray* - An optional pointer to an array of wait blocks that are to be used to describe the wait operation.
 
 Each thread object has a builtin array of wait blocks that can be used to wait on multiple objects concurrently. Whenever possible, the builtin array of wait blocks should be used in a wait multiple operation since no additional wait block storage need be allocated and later deallocated. However, if the number of objects to be waited on concurrently is greater than the  number of builtin wait blocks, then the *WaitBlockArray* parameter can be used to specify an alternate set of wait blocks to be used in the wait operation.
 
@@ -2767,33 +2770,33 @@ KeWaitForSingleObject (
 
 __Parameters:__
 
-- Object - A pointer to a dispatcher object.
-- WaitReason - The reason for the Wait.
+- *Object* - A pointer to a dispatcher object.
+- *WaitReason* - The reason for the Wait.
 - WaitMode - The processor mode on whose behalf the Wait is occurring.
-- Alertable - A boolean value that specifies whether the Wait is alertable.
-- Timeout - An optional pointer to timeout value that specifies the absolute or relative time over which the Wait is to be completed.
+- *Alertable* - A boolean value that specifies whether the Wait is alertable.
+- *Timeout* - An optional pointer to timeout value that specifies the absolute or relative time over which the Wait is to be completed.
 
 The current state of the specified object is examined to determine if the Wait can be satisfied immediately. If the Wait can be satisfied, then necessary side effects are performed on the object and an appropriate value is returned as the function value. If the Wait cannot be  satisfied immediately, and either no timeout value or a nonzero timeout value is specified, then the current thread is put in a Waiting state and a new thread is selected for execution on the current processor.
 
-The reason for the Wait is set to the value specified by the WaitReason parameter.
+The reason for the Wait is set to the value specified by the *WaitReason* parameter.
 
-The WaitMode parameter specifies on whose behalf the Wait is occurring.
+The *WaitMode* parameter specifies on whose behalf the Wait is occurring.
 
-The Alertable parameter specifies whether the thread can be alerted while it is in the Waiting state. If the value of this parameter is TRUE and the thread is alerted for a mode that is equal to or more privileged than the Wait mode, then the thread's Wait will be satisfied with a completion status of STATUS_ALERTED.
+The *Alertable* parameter specifies whether the thread can be alerted while it is in the Waiting state. If the value of this parameter is TRUE and the thread is alerted for a mode that is equal to or more privileged than the Wait mode, then the thread's Wait will be satisfied with a completion status of `STATUS_ALERTED`.
 
-If the WaitMode parameter is UserMode and the Alertable parameter TRUE, then the thread can also be awakened to deliver a user mode APC. Kernel mode APCs always cause the subject thread to be awakened if the Wait IRQL is zero and there is not a kernel APC in progress.
+If the *WaitMode* parameter is *UserMode* and the *Alertable* parameter TRUE, then the thread can also be awakened to deliver a user mode APC. Kernel mode APCs always cause the subject thread to be awakened if the Wait IRQL is zero and there is not a kernel APC in progress.
 
-The Timeout parameter is optional. If a timeout value is specified, then the Wait will be automatically satisfied if the timeout occurs before the specified Wait conditions are met. 
+The *Timeout* parameter is optional. If a timeout value is specified, then the Wait will be automatically satisfied if the timeout occurs before the specified Wait conditions are met. 
 
 If a zero timeout value is specified, then the Wait will not actually Wait regardless of whether it can be satisfied or not. An explicit timeout value of zero allows for the testing of a set of Wait conditions, and conditionally performing any side effects if the Wait can be immediately satisifed (e.g. the acquisition of a mutex).
 
-The expiration time of the timeout is expressed as either an absolute time at which the Wait is to be automatically satisifed, or a time that is relative to the current system time. If the value of the Timeout parameter is negative, then the expiration time is relative. Otherwise, the expiration time is absolute.
+The expiration time of the timeout is expressed as either an absolute time at which the Wait is to be automatically satisifed, or a time that is relative to the current system time. If the value of the *Timeout* parameter is negative, then the expiration time is relative. Otherwise, the expiration time is absolute.
 
-The values returned by the KeWaitForSingleObject function determine how the Wait was satisfied.
+The values returned by the **KeWaitForSingleObject** function determine how the Wait was satisfied.
 
-A value of `STATUS_SUCCESS` is returned if the dispatcher object specified by the Object parameter satisfied the Wait.
+A value of `STATUS_SUCCESS` is returned if the dispatcher object specified by the *Object* parameter satisfied the Wait.
 
-A value of `STATUS_ABANDONED` is returned if the dispatcher object specified by the Object parameter satisfied the Wait and is a mutant object that was previously abandoned.
+A value of `STATUS_ABANDONED` is returned if the dispatcher object specified by the *Object* parameter satisfied the Wait and is a mutant object that was previously abandoned.
 
 A value of `STATUS_ALERTED` is returned if the Wait was completed because the thread was alerted.
 
@@ -2876,13 +2879,13 @@ KeContextFromKframes (
 
 __Parameters:__
 
-- TrapFrame - A pointer to a trap frame.
-- ExceptionFrame - A pointer to an exception frame.
-- ContextFrame - A pointer to a context frame.
+- *TrapFrame* - A pointer to a trap frame.
+- *ExceptionFrame* - A pointer to an exception frame.
+- *ContextFrame* - A pointer to a context frame.
 
-Saved machine state is moved from the specified trap frame and/or the specified exception frame to the specified context frame. The ContextFlags field of the context frame controls the information that is moved.
+Saved machine state is moved from the specified trap frame and/or the specified exception frame to the specified context frame. The *ContextFlags* field of the context frame controls the information that is moved.
 
-ContextFlags Field
+__ContextFlags Field__
 
 - `CONTEXT_CONTROL` - Specifies that the processor state information from the trap frame is to be moved to the context frame.
 - `CONTEXT_FLOATING_POINT` - Specifies that the floating point register state from the trap and exception frames is to be moved to the context frame. 
@@ -2907,12 +2910,12 @@ KeContextToKframes (
 
 __Parameters:__
 
-- TrapFrame - A pointer to a trap frame.
-- ExceptionFrame - A pointer to an exception frame.
-- ContextFrame - A pointer to a context frame.
-- ContextFlags - A set of flags that specifies the state information that is to be moved from the specified context frame to the specified trap frame and/or the specified exception frame.
+- *TrapFrame* - A pointer to a trap frame.
+- *ExceptionFrame* - A pointer to an exception frame.
+- *ContextFrame* - A pointer to a context frame.
+- *ContextFlags* - A set of flags that specifies the state information that is to be moved from the specified context frame to the specified trap frame and/or the specified exception frame.
 
-    **ContextFlags Flags**
+    __ContextFlags Flags__
 
    - `CONTEXT_CONTROL` - Specifies that the processor state information from the context frame is to be moved to the trap frame.
    - `CONTEXT_FLOATING_POINT` - Specifies that the floating point register state from the context frame is to be moved to the trap and exception frames. 
@@ -2920,9 +2923,9 @@ __Parameters:__
    - `CONTEXT_PIPELINE` - Specifies that the floating point pipe state is to be moved from the context frame to the trap frame.
    - `CONTEXT_FULL` - Specifies that all of the state information from the context frame is to be moved to the trap and exception frames.
 
-- PreviousMode - The processor mode for which the context frame is specified.
+- *PreviousMode* - The processor mode for which the context frame is specified.
 
-Saved machine state is moved from the specified context frame to the specified trap frame and/or the specified exception frame. The ContextFlags parameter specifies the information that is to be moved. The PreviousMode parameter determines which bits the caller may specify if the processor state information is being moved to the trap frame.
+Saved machine state is moved from the specified context frame to the specified trap frame and/or the specified exception frame. The ContextFlags parameter specifies the information that is to be moved. The *PreviousMode* parameter determines which bits the caller may specify if the processor state information is being moved to the trap frame.
 
 ## 4.3 Fill Entry Translation Buffer
 
@@ -2939,9 +2942,9 @@ KeFillEntryTb (
 
 __Parameters:__
 
-- Pte - A pointer to a page table entry, or a pair of page table entries, that are to be inserted into the translation buffer of the current processor.
-- Virtual - The virtual address that corresponds to the first page table entry.
-- Invalid - A boolean value that determines whether a translation buffer entry should be invalidated if the host architecture does not provide a software-managed translation buffer.
+- *Pte* - A pointer to a page table entry, or a pair of page table entries, that are to be inserted into the translation buffer of the current processor.
+- *Virtual* - The virtual address that corresponds to the first page table entry.
+- *Invalid* - A boolean value that determines whether a translation buffer entry should be invalidated if the host architecture does not provide a software-managed translation buffer.
 
 This function is intended for use by memory management software for the following cases:
 
@@ -2950,15 +2953,16 @@ This function is intended for use by memory management software for the followin
 3.	A page table entry transitions from the unaccessed to the accessed state.
 
 None of these transitions affects other processors in the configuration; however, they provide the opportunity to optimize the filling of the translation buffer on systems that have a software-managed translation buffer.
-If the page table entry is transitioning from the invalid to the valid state, then the Invalid parameter should be FALSE. Otherwise, the Invalid parameter should be TRUE.
+
+If the page table entry is transitioning from the invalid to the valid state, then the *Invalid* parameter should be FALSE. Otherwise, the *Invalid* parameter should be TRUE.
 
 If the specified virtual address is already mapped by the translation buffer, then the contents of the specified page table entry(s) replace the page table entry in the translation buffer. Otherwise, a new translation buffer entry is created that maps the specified virtual address.
 
 **IMPLEMENTATION NOTES:**
 
-The Intel i860 does not have a software-managed translation buffer. It also cannot invalidate a single translation buffer entry. Therefore, if the Invalid parameter is TRUE, then the entire translation buffer is invalidated. Otherwise, no operation is performed.
+The Intel i860 does not have a software-managed translation buffer. It also cannot invalidate a single translation buffer entry. Therefore, if the *Invalid* parameter is TRUE, then the entire translation buffer is invalidated. Otherwise, no operation is performed.
 
-The Intel i386 and i486 do not have a software-managed translation buffer. Also neither of these processors can invalidate a single translation buffer entry. Therefore, if the Invalid parameter is TRUE, the entire translation buffer is invalidated. Otherwise, no operation is performed.
+The Intel i386 and i486 do not have a software-managed translation buffer. Also neither of these processors can invalidate a single translation buffer entry. Therefore, if the *Invalid* parameter is TRUE, the entire translation buffer is invalidated. Otherwise, no operation is performed.
 
 > *The i486 can invalidate a single translation buffer entry, but it is not yet supported.*
 
@@ -2977,11 +2981,11 @@ KeFlushDcache (
 
 __Parameters:__
 
-- AllProcessors - A boolean value that determines which data caches are to be flushed.
+- *AllProcessors* - A boolean value that determines which data caches are to be flushed.
 
 This function is intended for use by memory management and device driver software to keep the data cache coherent with DMA I/O operations.
 
-If the AllProcessors parameter is TRUE, then the data cache is flushed on all processors in the system. Otherwise, only the data caches on processors running threads that belong to the current thread's process are flushed.
+If the *AllProcessors* parameter is TRUE, then the data cache is flushed on all processors in the system. Otherwise, only the data caches on processors running threads that belong to the current thread's process are flushed.
 
 **IMPLEMENTATION NOTES:**
 
@@ -3007,18 +3011,18 @@ KeFlushEntireTb (
 
 __Parameters:__
 
-- Invalid - A boolean value that specifies why the translation buffer is being flushed.
-- AllProcessors - A boolean value that determines which translation buffers are to be flushed.
+- *Invalid* - A boolean value that specifies why the translation buffer is being flushed.
+- *AllProcessors* - A boolean value that determines which translation buffers are to be flushed.
 
 This function is intended for use by  memory management software when virtual pages are deleted, removed from the process working set, or their protection is changed. Normally, the entire translation buffer is not flushed when virtual pages are removed from the process working set. However, when a number of pages are removed all at once, it is more efficient to simply flush the entire translation buffer rather than flush individual entries.
 
-If the value of the Invalid parameter is TRUE, then the translation buffer is being flushed because one or more pages have become invalid and not present in memory. If the value of the Invalid parameter is FALSE, then the translation buffer is being flushed because the protection on one or more pages has been changed.
+If the value of the *Invalid* parameter is TRUE, then the translation buffer is being flushed because one or more pages have become invalid and not present in memory. If the value of the *Invalid* parameter is FALSE, then the translation buffer is being flushed because the protection on one or more pages has been changed.
 
-If the AllProcessors parameter is TRUE, then the entire translation buffer is flushed on all processors in the system. Otherwise, only the translation buffers on processors running threads that belong to the current thread's process are flushed.
+If the *AllProcessors* parameter is TRUE, then the entire translation buffer is flushed on all processors in the system. Otherwise, only the translation buffers on processors running threads that belong to the current thread's process are flushed.
 
 **IMPLEMENTATION NOTE:**
 
-The Intel i860 employs a data cache with virtual tags. It also cannot flush the translation buffer without also flushing the instruction cache. If the Invalid parameter is TRUE, then the data cache is flushed in addition to flushing the instruction cache and invalidating the translation buffer. Otherwise, the instruction cache is flushed and the translation buffer is invalidated.
+The Intel i860 employs a data cache with virtual tags. It also cannot flush the translation buffer without also flushing the instruction cache. If the *Invalid* parameter is TRUE, then the data cache is flushed in addition to flushing the instruction cache and invalidating the translation buffer. Otherwise, the instruction cache is flushed and the translation buffer is invalidated.
 
 The Intel i386 and i486 flush the translation buffer for this function.
 
@@ -3037,13 +3041,13 @@ KeFlushIcache (
 
 __Parameters:__
 
-- AllProcessors - A boolean value that determines which instruction caches are to be flushed.
+- *AllProcessors* - A boolean value that determines which instruction caches are to be flushed.
 
 This function is intended for use by system debuggers. When a breakpoint is inserted in system code, the instruction caches of all processors in the system must be flushed. If a breakpoint is placed in process code, then only the instruction caches of processors executing threads that belong to current thread's process need to be flushed.
 
 The executive also exports this function for use by code that modifies the instruction stream. After each such modification, and before attempting to execute the modified instructions, the instruction cache must be flushed.
 
-If the AllProcessors parameter is TRUE, then the instruction cache is flushed on all processors in the system. Otherwise, only the instruction caches on processors running threads that belong to the current thread's process are flushed.
+If the *AllProcessors* parameter is TRUE, then the instruction cache is flushed on all processors in the system. Otherwise, only the instruction caches on processors running threads that belong to the current thread's process are flushed.
 
 **IMPLEMENTATION NOTES:**
 
@@ -3067,28 +3071,28 @@ KeFlushIoBuffers (
 
 __Parameters:__
 
-- Mdl - A pointer to a memory descriptor list that describes the areas of memory occupied by the I/O buffer.
-- ReadOperation - A boolean value that determines whether the flush is being performed for a read operation.
+- *Mdl* - A pointer to a memory descriptor list that describes the areas of memory occupied by the I/O buffer.
+- *ReadOperation* - A boolean value that determines whether the flush is being performed for a read operation.
 
 This function is intended for use by device drivers and affects all processors in the system.
 
-If the ReadOperation parameter is TRUE, then the I/O operation is reading information into memory that may be valid in the instruction and data caches. If the ReadOperation parameter is FALSE, then the I/O operation is writing data from memory to a device and information may be present in the data cache and not in memory.
+If the *ReadOperation* parameter is TRUE, then the I/O operation is reading information into memory that may be valid in the instruction and data caches. If the *ReadOperation* parameter is FALSE, then the I/O operation is writing data from memory to a device and information may be present in the data cache and not in memory.
 
 **IMPLEMENTATION NOTES:**
 
-The Intel i860 employs a writeback data cache and an instruction cache that do not maintain coherency with I/O operations. Therefore, the data cache must be flushed for both read and write operations. The Intel i860 also cannot flush the instruction cache without invalidating the translation buffer. Therefore, if the ReadOperation parameter is TRUE, then the instruction cache is flushed and the translation buffer is also invalidated for this function.
+The Intel i860 employs a writeback data cache and an instruction cache that do not maintain coherency with I/O operations. Therefore, the data cache must be flushed for both read and write operations. The Intel i860 also cannot flush the instruction cache without invalidating the translation buffer. Therefore, if the *ReadOperation* parameter is TRUE, then the instruction cache is flushed and the translation buffer is also invalidated for this function.
 
 The Intel i386 and i486 maintain data and instruction cache coherency with I/O operations. Therefore, no operation is performed for this function.
 
 > The i486 has a write buffer which may have to be flushed before all I/O operations.
 
-The MIPS r3000 employs a write-through data cache and does not maintain coherency with I/O operations for either of the instruction or data caches. Therefore, if the ReadOperation parameter is TRUE, then both the instruction and data caches must be flushed. Otherwise, no operation is performed for this function.
+The MIPS r3000 employs a write-through data cache and does not maintain coherency with I/O operations for either of the instruction or data caches. Therefore, if the *ReadOperation* parameter is TRUE, then both the instruction and data caches must be flushed. Otherwise, no operation is performed for this function.
 
 > The r3000 has a write buffer which must be flushed before all I/O operations.
 
-The MIPS r4000SP employs a writeback data cache and an instruction cache that do not maintain coherency with I/O operations. Therefore, the data cache must be flushed for both read and write operations. In addition, if the ReadOperation parameter is TRUE, then the instruction cache is also flushed for this function.
+The MIPS r4000SP employs a writeback data cache and an instruction cache that do not maintain coherency with I/O operations. Therefore, the data cache must be flushed for both read and write operations. In addition, if the *ReadOperation* parameter is TRUE, then the instruction cache is also flushed for this function.
 
-The MIPS r4000MP employs a writeback data cache that maintains coherency with I/O operations. However, cache coherency is not maintained for the instruction cache with I/O operations. Therefore, if the ReadOperation parameter is TRUE, then the instruction cache is flushed. Otherwise, no operation is performed for this function.
+The MIPS r4000MP employs a writeback data cache that maintains coherency with I/O operations. However, cache coherency is not maintained for the instruction cache with I/O operations. Therefore, if the *ReadOperation* parameter is TRUE, then the instruction cache is flushed. Otherwise, no operation is performed for this function.
 
 ## 4.8 Flush Single Translation Buffer Entry
 
@@ -3107,25 +3111,25 @@ KeFlushSingleTb (
 
 __Parameters:__
 
-- Virtual - A virtual address that is within the page whose translation buffer entry is to be flushed.
-- Invalid - A boolean value that specifies why the translation buffer is being flushed.
-- AllProcessors - A boolean value that determines which translation buffers are to be flushed.
-- PtePointer - A Pointer to a page table entry which is to be updated with the new PteValue.
-- PteValue - The new Pte value.
+- *Virtual* - A virtual address that is within the page whose translation buffer entry is to be flushed.
+- *Invalid* - A boolean value that specifies why the translation buffer is being flushed.
+- *AllProcessors* - A boolean value that determines which translation buffers are to be flushed.
+- *PtePointer* - A Pointer to a page table entry which is to be updated with the new PteValue.
+- *PteValue* - The new Pte value.
 
 __Return Value:__
 
-The contents of the page table entry PtePointer refers to before the entry is set to PteValue.
+- The contents of the page table entry *PtePointer* refers to before the entry is set to *PteValue*.
 
 This function is intended for use by virtual memory management software when a virtual page is deleted, removed from the process working set, or its protection is changed. If several virtual pages are removed from a process's address space at once or their protection is changed, then it may be more efficient to use the **KeFlushEntireTb** function.
 
-If the value of the Invalid parameter is TRUE, then the translation buffer is being flushed because a page has become invalid and is not present in memory. If the value of the Invalid parameter is FALSE, then the translation buffer is being flushed because the protection on a page has been changed.
+If the value of the *Invalid* parameter is TRUE, then the translation buffer is being flushed because a page has become invalid and is not present in memory. If the value of the Invalid parameter is FALSE, then the translation buffer is being flushed because the protection on a page has been changed.
 
-If the AllProcessors parameter is TRUE, then the specified  translation buffer entry is flushed on all processors in the system. Otherwise, only the specified translation buffer entry on process running threads that belong to the current thread's processor are flushed.
+If the *AllProcessors* parameter is TRUE, then the specified  translation buffer entry is flushed on all processors in the system. Otherwise, only the specified translation buffer entry on process running threads that belong to the current thread's processor are flushed.
 
 **IMPLEMENTATION NOTE:**
 
-The Intel i860 employs a data cache with virtual tags. It also cannot invalidate a single entry from the translation buffer nor can it invalidate the translation buffer without also flushing the instruction cache. If the Invalid parameter is TRUE, then the data cache is flushed in addition to flushing the instruction cache and invalidating the translation buffer. Otherwise, the instruction cache is flushed and the translation buffer is invalidated.
+The Intel i860 employs a data cache with virtual tags. It also cannot invalidate a single entry from the translation buffer nor can it invalidate the translation buffer without also flushing the instruction cache. If the *Invalid* parameter is TRUE, then the data cache is flushed in addition to flushing the instruction cache and invalidating the translation buffer. Otherwise, the instruction cache is flushed and the translation buffer is invalidated.
 
 The Intel i386 and i486 cannot flush a single entry from the translation buffer. Therefore, the entire translation buffer is invalidated for this function.
 
@@ -3161,8 +3165,8 @@ The APC execution environment is obtained from the current thread and returned a
 
 Possible values that can be returned by this function include:
 
-- OriginalApcEnvironment - The current APC environment is the thread's parent process.
-- AttachedApcEnvironment - The current APC environment is a process that has been attached by the current thread.
+- *OriginalApcEnvironment* - The current APC environment is the thread's parent process.
+- *AttachedApcEnvironment* - The current APC environment is a process that has been attached by the current thread.
 
 ## 4.11 Get Current IRQL
 
@@ -3201,7 +3205,7 @@ KeLowerIrql (
 
 __Parameters:__
 
-- NewIrql - The new IRQL value.
+- *NewIrql* - The new IRQL value.
 
 If the new IRQL is greater than the current IRQL, then a bug check will occur. Otherwise, the current IRQL is set to the specified value.
 
@@ -3218,13 +3222,13 @@ KeQuerySystemTime (
 
 __Parameters:__
 
-- CurrentTime - A pointer to a variable that receives the current system time. 
+- *CurrentTime* - A pointer to a variable that receives the current system time. 
 
 This function returns the current system time in 100ns units. It is the responsibility of the executive to maintain the correspondence between system time and external time as seen by a user of the system.
 
 ## 4.15 Raise IRQL
 
-The current IRQL can be raised with the **KeRaiseIrql** function:
+The current **IRQL** can be raised with the **KeRaiseIrql** function:
 
 ```
 KIRQL
@@ -3235,7 +3239,7 @@ KeRaiseIrql (
 
 __Parameters:__
 
-- NewIrql - The new IRQL value.
+- *NewIrql* - The new IRQL value.
 
 If the new IRQL is less than the current IRQL, then a bug check will occur. Otherwise, the current IRQL is set to the specified value.
 
@@ -3270,8 +3274,8 @@ KeSetSystemTime (
 
 __Parameters:__
 
-- NewTime - A pointer to a variable that specifies the new system time. 
-- OldTime - A pointer to a variable that receives the previous system time. 
+- *NewTime* - A pointer to a variable that specifies the new system time. 
+- *OldTime* - A pointer to a variable that receives the previous system time. 
 
 This function returns the previous system time in 100ns units and sets the system time to the specified value. It is the responsibility of the executive to maintain the correspondence between system time and external time as seen by a user of the system.
 
@@ -3288,7 +3292,7 @@ KeStallExecutionProcessor (
 
 __Parameters:__
 
-- MicroSeconds - The number of microseconds for which execution is to be stalled.
+- *MicroSeconds* - The number of microseconds for which execution is to be stalled.
 
 This function stalls the execution of the current processor by executing a processor-dependent routine that busy waits at least the specified number of microseconds, but not significantly longer. 
 
@@ -3312,11 +3316,11 @@ KeUnfreezeExecution (
 
 __Parameters:__
 
-- Irql - The previous IRQL value that is to be restored.
+- *Irql* - The previous IRQL value that is to be restored.
 
 The execution of all processors in the system, excluding the current processor, is unfrozen, the previous IRQL is restored, and the instruction cache of each processor in the configuration is flushed.
 
-This function is intended for use by system debuggers and should be called when execution is to be continued after entering the debugger and calling KeFreezeExecution function. Before the execution of an unfrozen processor is continued, its instruction cache and translation buffer are flushed.
+This function is intended for use by system debuggers and should be called when execution is to be continued after entering the debugger and calling **KeFreezeExecution** function. Before the execution of an unfrozen processor is continued, its instruction cache and translation buffer are flushed.
 
 # 5. Intel x86 Specific Functions.
 
@@ -3342,17 +3346,17 @@ Ke386SetLdtProcess (
 
 __Parameters:__
 
-- Process - Pointer to KPROCESS object describing the process for which the Ldt is to be set.
-- Ldt - Pointer to an array of LDT_ENTRYs (that is, a pointer to an Ldt.
-- Limit - Ldt limit (must be 0 mod 8)
+- *Process* - Pointer to `KPROCESS` object describing the process for which the Ldt is to be set.
+- *Ldt* - Pointer to an array of LDT_ENTRYs (that is, a pointer to an Ldt.
+- *Limit* - Ldt limit (must be 0 mod 8)
 
 The specified LDT (which may be null) will be made the active Ldt of the specified process, for all threads thereof, on whichever processors they are running.  The change will take effect before the call returns.
 
-An Ldt address of NULL or a Limit of 0 will cause the process to receive the NULL Ldt.
+An *Ldt* address of NULL or a Limit of 0 will cause the process to receive the NULL *Ldt*.
 
 This function only exists on i386 and i386 compatible processors.
 
-No checking is done on the validity of Ldt entries.
+No checking is done on the validity of *Ldt* entries.
 
 **IMPLEMENATION NOTES:**
 
@@ -3373,9 +3377,9 @@ Ke386SetDescriptorProcess (
 
 __Parameters:__
 
-- Process - Pointer to KPROCESS object describing the process for which the descriptor edit is to be performed.
-- Offset - Byte offset into the Ldt of the descriptor to edit.  Must be 0 mod 8.
-- LdtEntry - Value to edit into the descriptor in hardware format.  No checking is done on the validity of this item.
+- *Process* - Pointer to `KPROCESS` object describing the process for which the descriptor edit is to be performed.
+- *Offset* - Byte offset into the Ldt of the descriptor to edit.  Must be 0 mod 8.
+- *LdtEntry* - Value to edit into the descriptor in hardware format.  No checking is done on the validity of this item.
 
 The specified LdtEntry (which could be 0, not present, etc) will be edited into the specified Offset in the Ldt of the specified Process.  This will be synchronized across all the processors executing the process.  The edit will take affect on all processors before the call returns.
 
@@ -3394,11 +3398,11 @@ Ke386GetGdtEntryThread (
 
 __Parameters:__
 
-- Thread —— Supplies a pointer to the thread from whose Gdt the entry is to come.
-- Offset —— Supplies the descriptor number of the descriptor to return.  This value must be 0 mod 8.
-- Descriptor —— Returns the descriptor contents
+- *Thread* —— Supplies a pointer to the thread from whose Gdt the entry is to come.
+- *Offset* —— Supplies the descriptor number of the descriptor to return.  This value must be 0 mod 8.
+- *Descriptor* —— Returns the descriptor contents
 
-The Gdt entry specified by Selector will be copied from the specified thread's Gdt, into Descriptor.
+The Gdt entry specified by Selector will be copied from the specified thread's Gdt, into *Descriptor*.
 
 For descriptors that don't exist when the thread is not running (`KGDT_R3_TEB`, and `KGDT_LDT`), the descriptor values will be "materialized".
 
