@@ -5,18 +5,10 @@ Portable Systems Group
 
 **Author:** Lou Perazzoli
 
-*Original Draft 1.0, March 31, 1989*  
-*Revision 2.0, May 5, 1989*  
-*Revision 3.0, August 17, 1989*  
-*Revision 4.0, October 15, 1989*  
-*Revision 5.0, January 15, 1990*  
-*Revision 6.0, July 25, 1990*  
-
- 
-1\. Introduction		1  
-2\. Project Goals		1  
-3\. NT OS/2 Components		2  
-4\. Functional Specifications		3  
+1. [Introduction](#1-introduction)
+2. [Project Goals](#2-project-goals)
+3. [NT OS/2 Components](#3-nt-os2-components)
+4. [Functional Specifications](#4-functional-specifications)
 
 1\. Introduction
 ---------------
@@ -102,8 +94,8 @@ The goal of the specifications is to allow someone to understand the functionali
 
 Each specification addresses Cruiser and POSIX compatibility, if appropriate.  The following is a list of design specifications included in this version of the workbook:
 
-1.	**Kernel** - Describes the function of the kernel, the objects implemented, and the various interfaces provided to manipulate these objects. This specification contains implementation details, where necessary, to reveal how multiprocessing and processor dispatching take place. This specification also describes synchronization, scheduling/dispatching, and Asynchronous Procedure Calls (APCs).
-2.	**Object Management** - Describes how the executive deals with objects, what they are for, how they are protected, how they are named, how they are allocated, how they are accounted for, and how they are deleted. This specification also addresses object directories and how to access them using the file system directory operations.
+1.	[**Kernel**][1] - Describes the function of the kernel, the objects implemented, and the various interfaces provided to manipulate these objects. This specification contains implementation details, where necessary, to reveal how multiprocessing and processor dispatching take place. This specification also describes synchronization, scheduling/dispatching, and Asynchronous Procedure Calls (APCs).
+2.	[**Object Management**][2] - Describes how the executive deals with objects, what they are for, how they are protected, how they are named, how they are allocated, how they are accounted for, and how they are deleted. This specification also addresses object directories and how to access them using the file system directory operations.
 3. **Process Structure** - Describes the process and thread objects and the operations that can be performed on them. This specification also explains signals and how OS/2 compatibility and POSIX compliance are addressed.
 4. **Virtual Memory** - Describes the virtual memory objects and the operations that can be performed on these objects.
 5.	**I/O Management** - Describes the APIs and objects available for I/O operations.
@@ -182,6 +174,7 @@ Original Draft 1.0, March 31, 1989
     - Driver Model Specification - Documents drivers and I/O system internals
 
 ### Revision 5.0, January 15, 1990.
+
 1.	The following specifications were added to the design workbook:
     - Mutant Specification
     - Transport Driver Interface
@@ -201,3 +194,5 @@ Original Draft 1.0, March 31, 1989
     - Security Account Manager Protected Server
 
 
+  [1]: 01%20-%20NT%20OS2%20Kernel%20Specification.md
+  [2]: 02%20-%20NT%20OS2%20Object%20Management%20Specification.md
