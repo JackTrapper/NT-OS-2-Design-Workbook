@@ -89,6 +89,8 @@ Each specification addresses Cruiser and POSIX compatibility, if appropriate.  T
 
 1.	[**Kernel**](01%20-%20NT%20OS2%20Kernel%20Specification.md) - Describes the function of the kernel, the objects implemented, and the various interfaces provided to manipulate these objects. This specification contains implementation details, where necessary, to reveal how multiprocessing and processor dispatching take place. This specification also describes synchronization, scheduling/dispatching, and Asynchronous Procedure Calls (APCs).
 
+2.	[**Object Management**](02%20-%20NT%20OS2%20Object%20Management%20Specification.md) - Describes how the executive deals with objects, what they are for, how they are protected, how they are named, how they are allocated, how they are accounted for, and how they are deleted. This specification also addresses object directories and how to access them using the file system directory operations.
+
 
 ![NMAH-NMAH2005-09002](NMAH-NMAH2005-09002.jpg)
 ![NMAH-NMAH2005-09003](NMAH-NMAH2005-09003.jpg)
